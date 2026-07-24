@@ -1,0 +1,1 @@
+A self-hosted project/task tracker application designed to replace Notion. This tool helps manage projects and tasks with a clean, efficient interface built on modern web technologies.

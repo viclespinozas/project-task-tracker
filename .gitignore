@@ -1,0 +1,11 @@
+__pycache__/
+.env
+node_modules/
+</content>
+<task_progress>
+- [x] Initialize git repository
+- [x] Create README.md
+- [x] Create .gitignore
+- [ ] Create CONTEXT.md
+- [ ] Create directory structure
+</task_progress>
