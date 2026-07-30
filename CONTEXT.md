@@ -45,4 +45,11 @@ Project (1) -> Task (many)
 - frontend/
 - docker-compose.yml
 
+## Services
+- **db**: PostgreSQL 16 database service
+  - Primary database: `tracker` (from POSTGRES_DB env var)
+  - Test database: `tracker_test` (created at container init)
+  - Uses named volume `postgres_data` for data persistence
+  - Exposed on port 5432
+
 ## Build Log
