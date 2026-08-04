@@ -52,4 +52,29 @@ Project (1) -> Task (many)
   - Uses named volume `postgres_data` for data persistence
   - Exposed on port 5432
 
+## Directory Layout
+- backend/
+- frontend/
+- docker-compose.yml
+
+## Services
+- **db**: PostgreSQL 16 database service
+  - Primary database: `tracker` (from POSTGRES_DB env var)
+  - Test database: `tracker_test` (created at container init)
+  - Uses named volume `postgres_data` for data persistence
+  - Exposed on port 5432
+
+## Backend Service
+- **backend**: FastAPI application service
+  - Built from ./backend/Dockerfile
+  - Depends on db service
+  - Reads DATABASE_URL from .env file
+  - Exposes port 8000
+  - Mounts backend/ as a volume for live reload during development (uvicorn --reload)
+  - Uses uvicorn to run the FastAPI app
+
+## How to Run
+To start the application, run `docker compose up backend` in the project root directory.
+
 ## Build Log
+
