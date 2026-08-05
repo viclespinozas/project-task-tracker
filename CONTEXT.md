@@ -109,4 +109,9 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Added updated_at field with auto-update capability
 - [x] Confirmed all field types match requirements
 - [x] Noted that past_due is computed in service layer, not stored
+- [x] Initialized Alembic in backend/
+- [x] Configured alembic.ini to pull DATABASE_URL from app.core.config.Settings
+- [x] Configured env.py to target models' metadata
+- [x] Generated initial migration creating projects and tasks tables with all constraints and enum types
+- [x] Added note to README.md about running migrations
 
