@@ -4,6 +4,7 @@ from typing import List
 from ..schemas.task import TaskCreate, TaskUpdate, TaskRead
 from ..models.task import Task
 from ..db.session import get_db
+from ..services.task_service import compute_past_due
 
 router = APIRouter()
 
@@ -19,6 +20,9 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
+    
+    # Compute past_due for the created task
+    db_task.past_due = compute_past_due(db_task.due_date, db_task.status)
     return db_task
 
 @router.get("/tasks", response_model=List[TaskRead])
@@ -30,13 +34,21 @@ def list_tasks(status: str = None, project_id: int = None, priority: str = None,
         query = query.filter(Task.project_id == project_id)
     if priority:
         query = query.filter(Task.priority == priority)
-    return query.all()
+    
+    tasks = query.all()
+    # Compute past_due for each task
+    for task in tasks:
+        task.past_due = compute_past_due(task.due_date, task.status)
+    return tasks
 
 @router.get("/tasks/{id}", response_model=TaskRead)
 def get_task(id: int, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == id).first()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    # Compute past_due for the task
+    task.past_due = compute_past_due(task.due_date, task.status)
     return task
 
 @router.patch("/tasks/{id}", response_model=TaskRead)
@@ -51,6 +63,9 @@ def update_task(id: int, task_update: TaskUpdate, db: Session = Depends(get_db))
     
     db.commit()
     db.refresh(task)
+    
+    # Compute past_due for the updated task
+    task.past_due = compute_past_due(task.due_date, task.status)
     return task
 
 @router.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)

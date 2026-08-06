@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 from pydantic.config import ConfigDict
@@ -25,6 +25,6 @@ class TaskUpdate(TaskBase):
 class TaskRead(TaskBase):
     id: int
     updated_at: datetime
-    past_due: bool
+    past_due: bool = Field(default=False)
     
     model_config = ConfigDict(from_attributes=True)

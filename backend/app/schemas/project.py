@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from typing import Optional
 from datetime import date
 from pydantic.config import ConfigDict
@@ -14,6 +14,18 @@ class ProjectBase(BaseModel):
     start_value: Optional[int] = None
     end_value: Optional[int] = None
     status: Optional[str] = None
+    
+    @validator('progress')
+    def progress_must_be_between_0_and_100(cls, v):
+        if v is not None and (v < 0 or v > 100):
+            raise ValueError('Progress must be between 0 and 100')
+        return v
+    
+    @validator('end_date')
+    def end_date_must_not_be_before_start_date(cls, v, values):
+        if v is not None and 'start_date' in values and values['start_date'] is not None and v < values['start_date']:
+            raise ValueError('End date must not be before start date')
+        return v
 
 # Schema for creating a Project
 class ProjectCreate(ProjectBase):
