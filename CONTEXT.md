@@ -114,4 +114,6 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Configured env.py to target models' metadata
 - [x] Generated initial migration creating projects and tasks tables with all constraints and enum types
 - [x] Added note to README.md about running migrations
+- [x] Created Pydantic v2 schemas for Project and Task in backend/app/schemas/
+- [x] TaskCreate and TaskUpdate schemas do not accept past_due or updated_at fields (server-controlled)
 
