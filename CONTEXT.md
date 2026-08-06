@@ -131,6 +131,10 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Integrated task service into Task read path to calculate past_due at request time
 - [x] Added validation for Project.progress (0-100) in schema layer 
 - [x] Added validation for Project.end_date vs start_date in schema layer
+- [x] Set up test fixtures and configuration in backend/tests/
+- [x] Added pytest and httpx to requirements.txt
+- [x] Added test profile/command in README.md for running docker compose exec backend pytest
+- [x] Updated CONTEXT.md with test setup summary, how to run tests, and "never point tests at dev db" rule
 
 ## API Surface - /projects
 
