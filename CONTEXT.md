@@ -64,6 +64,7 @@ Project (1) -> Task (many)
 
 ## Design Decision Notes
 - past_due field is computed in service layer, not persisted in database (as requested)
+- Business logic is separated from routers to keep the API endpoints focused on handling HTTP requests and responses, while the actual business logic is encapsulated in dedicated service modules for better testability and maintainability
 
 ## Directory Layout
 - backend/
@@ -126,6 +127,10 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Configured proper 404 responses for missing resources
 - [x] Implemented cascade delete functionality for tasks when project is deleted
 - [x] TaskCreate and TaskUpdate schemas do not accept past_due or updated_at fields (server-controlled)
+- [x] Created backend/app/services/task_service.py with compute_past_due function
+- [x] Integrated task service into Task read path to calculate past_due at request time
+- [x] Added validation for Project.progress (0-100) in schema layer 
+- [x] Added validation for Project.end_date vs start_date in schema layer
 
 ## API Surface - /projects
 
