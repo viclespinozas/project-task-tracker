@@ -40,6 +40,31 @@ Project (1) -> Task (many)
 - updated_at
 - project_id (FK -> Project)
 
+## Model Field Types Confirmation
+- Project.id: Integer (PK) ✓
+- Project.name: String ✓
+- Project.assignee: String ✓
+- Project.priority: String ✓
+- Project.progress: Integer ✓
+- Project.start_date: Date ✓
+- Project.end_date: Date ✓
+- Project.start_value: Integer ✓
+- Project.end_value: Integer ✓
+- Project.status: String (enum values: Not Started, In Progress, Done) ✓
+
+- Task.id: Integer (PK) ✓
+- Task.name: String ✓
+- Task.status: String (enum values: Inbox, Waiting, Next, Doing, Done) ✓
+- Task.assignee: String ✓
+- Task.due_date: Date ✓
+- Task.priority: String (enum values: High, Medium, Low) ✓
+- Task.description: String ✓
+- Task.updated_at: DateTime (auto-set on update via onupdate=func.now()) ✓
+- Task.project_id: Integer (FK to projects.id, nullable=False) ✓
+
+## Design Decision Notes
+- past_due field is computed in service layer, not persisted in database (as requested)
+
 ## Directory Layout
 - backend/
 - frontend/
@@ -77,4 +102,18 @@ Project (1) -> Task (many)
 To start the application, run `docker compose up backend` in the project root directory.
 
 ## Build Log
+- [x] Created SQLAlchemy models for Project and Task entities
+- [x] Implemented proper relationships between Project and Task
+- [x] Added cascade delete functionality on project removal
+- [x] Implemented enum types for status fields
+- [x] Added updated_at field with auto-update capability
+- [x] Confirmed all field types match requirements
+- [x] Noted that past_due is computed in service layer, not stored
+- [x] Initialized Alembic in backend/
+- [x] Configured alembic.ini to pull DATABASE_URL from app.core.config.Settings
+- [x] Configured env.py to target models' metadata
+- [x] Generated initial migration creating projects and tasks tables with all constraints and enum types
+- [x] Added note to README.md about running migrations
+- [x] Created Pydantic v2 schemas for Project and Task in backend/app/schemas/
+- [x] TaskCreate and TaskUpdate schemas do not accept past_due or updated_at fields (server-controlled)
 
