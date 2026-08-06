@@ -116,4 +116,64 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Added note to README.md about running migrations
 - [x] Created Pydantic v2 schemas for Project and Task in backend/app/schemas/
 - [x] TaskCreate and TaskUpdate schemas do not accept past_due or updated_at fields (server-controlled)
+- [x] Implemented FastAPI router for tasks with POST /tasks, GET /tasks, GET /tasks/{id}, PATCH /tasks/{id}, DELETE /tasks/{id}
+- [x] Integrated tasks router into main application under /api prefix
+- [x] Configured proper 404 responses for missing resources
+- [x] Implemented validation that project_id exists when creating a task (returns 404 if not found)
+- [x] Implemented GET /tasks with query filters: status, project_id, priority (combinable)
+- [x] Implemented FastAPI router for projects with POST /projects, GET /projects, GET /projects/{id}, PATCH /projects/{id}, DELETE /projects/{id}
+- [x] Integrated projects router into main application under /api prefix
+- [x] Configured proper 404 responses for missing resources
+- [x] Implemented cascade delete functionality for tasks when project is deleted
+- [x] TaskCreate and TaskUpdate schemas do not accept past_due or updated_at fields (server-controlled)
+
+## API Surface - /projects
+
+### GET /projects
+Retrieves a list of all projects.
+Query parameters:
+- status: Optional string to filter projects by status
+
+### GET /projects/{id}
+Retrieves a specific project by ID.
+Returns 404 if project doesn't exist.
+
+### POST /projects
+Creates a new project.
+Returns the created project.
+
+### PATCH /projects/{id}
+Updates an existing project partially.
+Returns 404 if project doesn't exist.
+
+### DELETE /projects/{id}
+Deletes a project and all associated tasks (cascades).
+Returns 404 if project doesn't exist.
+
+## API Surface - /tasks
+
+### GET /tasks
+Retrieves a list of all tasks.
+Query parameters:
+- status: Optional string to filter tasks by status
+- project_id: Optional integer to filter tasks by project ID
+- priority: Optional string to filter tasks by priority
+All query parameters are combinable.
+
+### GET /tasks/{id}
+Retrieves a specific task by ID.
+Returns 404 if task doesn't exist.
+
+### POST /tasks
+Creates a new task.
+Requires a valid project_id - returns 404 if the referenced project doesn't exist.
+Returns the created task.
+
+### PATCH /tasks/{id}
+Updates an existing task partially.
+Returns 404 if task doesn't exist.
+
+### DELETE /tasks/{id}
+Deletes a task.
+Returns 404 if task doesn't exist.
 

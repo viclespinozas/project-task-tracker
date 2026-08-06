@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine, Base
 from app.core.config import settings
 from app.models import Project, Task  # Import models to register them with SQLAlchemy
+from app.routers.projects import router as projects_router
+from app.routers.tasks import router as tasks_router
 
 app = FastAPI()
 
@@ -14,6 +16,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(projects_router, prefix="/api")
+app.include_router(tasks_router, prefix="/api")
 
 @app.get("/health")
 def health_check():
