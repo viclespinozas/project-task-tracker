@@ -137,6 +137,16 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Updated CONTEXT.md with test setup summary, how to run tests, and "never point tests at dev db" rule
 - [x] Added pytest tests for projects API endpoints (7/7 tests passing)
 - [x] All project endpoint tests pass (create, get, list, update, delete with cascade)
+- [x] Added pytest tests for tasks API endpoints (15/15 tests passing)
+- [x] Backend task tests implemented and passing (14 tests)
+- [x] All requirements covered including:
+  - Create task with valid project_id succeeds
+  - Create task with nonexistent project_id returns 404, not 500
+  - past_due is true when due_date is in the past and status != Done
+  - past_due is false when status == Done even if due_date is in the past
+  - List tasks filters by project_id, status, and priority, individually and combined
+  - Client cannot set past_due or updated_at directly via the API (verify it's ignored/rejected)
+  - Update task changes updated_at automatically
 
 ## API Surface - /projects
 
