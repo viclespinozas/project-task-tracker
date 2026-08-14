@@ -69,18 +69,13 @@ Project (1) -> Task (many)
 ## Directory Layout
 - backend/
 - frontend/
-- docker-compose.yml
-
-## Services
-- **db**: PostgreSQL 16 database service
-  - Primary database: `tracker` (from POSTGRES_DB env var)
-  - Test database: `tracker_test` (created at container init)
-  - Uses named volume `postgres_data` for data persistence
-  - Exposed on port 5432
-
-## Directory Layout
-- backend/
-- frontend/
+  - src/
+    - api/
+      - client.js
+    - pages/
+      - ProjectsPage.jsx
+      - TasksPage.jsx
+  - .env.example
 - docker-compose.yml
 
 ## Services
@@ -147,6 +142,11 @@ To start the application, run `docker compose up backend` in the project root di
   - List tasks filters by project_id, status, and priority, individually and combined
   - Client cannot set past_due or updated_at directly via the API (verify it's ignored/rejected)
   - Update task changes updated_at automatically
+- [x] Created frontend structure with Vite + React app:
+  - src/api/client.js - fetch wrapper reading API base URL from env var VITE_API_URL
+  - src/pages/ProjectsPage.jsx and TasksPage.jsx placeholders
+  - Basic routing (react-router-dom) between /projects and /tasks, with a simple nav header
+  - .env.example in frontend/ with VITE_API_URL=http://localhost:8000/api
 
 ## API Surface - /projects
 
@@ -197,4 +197,3 @@ Returns 404 if task doesn't exist.
 ### DELETE /tasks/{id}
 Deletes a task.
 Returns 404 if task doesn't exist.
-
