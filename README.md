@@ -28,3 +28,11 @@ To run migrations:
 
 ```bash
 docker-compose exec backend alembic upgrade head
+```
+
+## Running Tests
+
+To run tests:
+
+```bash
+docker-compose exec backend pytest
