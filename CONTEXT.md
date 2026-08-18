@@ -155,6 +155,12 @@ To start the application, run `docker compose up backend` in the project root di
   - getItemStatus: function that returns the status of an item
   - onStatusChange: callback function called when an item's status changes (itemId, newStatus)
   - renderCard: render-prop for card contents (function that takes an item and returns JSX)
+- [x] ProjectsPage.jsx wired to use KanbanBoard:
+  - fetches projects from API on mount
+  - groups by status (Not Started / In Progress / Done)
+  - renders each card showing name, assignee, priority, progress
+  - handles drag between columns by PATCHing project status via API client
+  - updates local state optimistically and reverts on API failure
 
 ## API Surface - /projects
 
