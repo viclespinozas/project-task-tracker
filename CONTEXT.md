@@ -161,6 +161,12 @@ To start the application, run `docker compose up backend` in the project root di
   - renders each card showing name, assignee, priority, progress
   - handles drag between columns by PATCHing project status via API client
   - updates local state optimistically and reverts on API failure
+- [x] TasksPage.jsx implemented with KanbanBoard:
+  - shows tasks in columns: Inbox/Waiting/Next/Doing/Done
+  - each card displays name, assignee, priority, due date
+  - visual flag (red border/text) for past_due tasks
+  - project filter dropdown populated from GET /projects
+  - filters tasks by project_id when selected
 
 ## API Surface - /projects
 
