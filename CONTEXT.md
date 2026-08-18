@@ -147,6 +147,14 @@ To start the application, run `docker compose up backend` in the project root di
   - src/pages/ProjectsPage.jsx and TasksPage.jsx placeholders
   - Basic routing (react-router-dom) between /projects and /tasks, with a simple nav header
   - .env.example in frontend/ with VITE_API_URL=http://localhost:8000/api
+- [x] Created generic KanbanBoard component in frontend/src/components/KanbanBoard.jsx
+- [x] KanbanBoard component is status-agnostic and supports drag-and-drop between columns
+- [x] KanbanBoard component takes props:
+  - items: array of items to display
+  - columns: ordered list of status values + labels (e.g., [{status: 'todo', label: 'To Do'}, {status: 'done', label: 'Done'}])
+  - getItemStatus: function that returns the status of an item
+  - onStatusChange: callback function called when an item's status changes (itemId, newStatus)
+  - renderCard: render-prop for card contents (function that takes an item and returns JSX)
 
 ## API Surface - /projects
 
