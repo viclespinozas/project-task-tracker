@@ -175,6 +175,8 @@ To start the application, run `docker compose up backend` in the project root di
   - Opens via an "Add card" button per column 
   - Supports click-to-edit on existing cards
 - [x] Updated apiClient to properly handle JSON error responses for validation errors
+- [x] Created frontend Dockerfile using Node.js 18-alpine, building with yarn and serving with 'serve' command
+- [x] Added frontend service to docker-compose.yml that depends_on backend, exposes port 5173, and reads VITE_API_URL from .env
 
 ## API Surface - /projects
 
