@@ -104,6 +104,30 @@ const TasksPage = () => {
     }
   };
 
+  // Function to handle adding a new task
+  const handleAddTask = async (taskData) => {
+    try {
+      const response = await apiClient.post('/tasks', taskData);
+      setTasks(prev => [...prev, response.data]);
+    } catch (err) {
+      throw err; // Let the modal handle the error
+    }
+  };
+
+  // Function to handle updating a task
+  const handleEditTask = async (taskId, taskData) => {
+    try {
+      const response = await apiClient.put(`/tasks/${taskId}`, taskData);
+      setTasks(prev => 
+        prev.map(task => 
+          task.id === taskId ? response.data : task
+        )
+      );
+    } catch (err) {
+      throw err; // Let the modal handle the error
+    }
+  };
+
   // Function to render task card
   const renderCard = (task) => {
     const isPastDue = task.past_due;
@@ -171,6 +195,9 @@ const TasksPage = () => {
         getItemStatus={getItemStatus}
         onStatusChange={handleStatusChange}
         renderCard={renderCard}
+        onAddTask={handleAddTask}
+        onEditTask={handleEditTask}
+        projects={projects}
       />
     </div>
   );

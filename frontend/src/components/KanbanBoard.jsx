@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -15,6 +15,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Modal from './Modal';
+import ProjectForm from './ProjectForm';
+import TaskForm from './TaskForm';
 
 // Helper function to group items by status
 const groupItemsByStatus = (items, getItemStatus) => {
@@ -39,12 +42,24 @@ const KanbanColumn = ({
   onDragStart,
   onDragEnd,
   onDragOver,
-  isOverlay = false
+  isOverlay = false,
+  onAddItem,
+  onEditItem,
+  modalType,
+  projects = []
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
   );
+
+  const openAddModal = () => {
+    onAddItem(modalType);
+  };
+
+  const openEditModal = (item) => {
+    onEditItem(modalType, item);
+  };
 
   return (
     <div className="kanban-column">
@@ -62,7 +77,26 @@ const KanbanColumn = ({
       >
         <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
           <div className="kanban-column-content">
-            {items.map(item => renderCard(item))}
+            {/* Add card button */}
+            <button 
+              className="add-card-button"
+              onClick={openAddModal}
+            >
+              + Add Card
+            </button>
+            
+            {items.map(item => (
+              <div 
+                key={item.id} 
+                className="kanban-card-container"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEditModal(item);
+                }}
+              >
+                {renderCard(item)}
+              </div>
+            ))}
           </div>
         </SortableContext>
         
@@ -80,11 +114,20 @@ const KanbanBoard = ({
   columns,
   getItemStatus,
   onStatusChange,
-  renderCard
+  renderCard,
+  onAddProject,
+  onAddTask,
+  onEditProject,
+  onEditTask,
+  projects = []
 }) => {
   const [activeItem, setActiveItem] = React.useState(null);
   const [columnItems, setColumnItems] = React.useState({});
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(''); // 'project' or 'task'
+  const [editingItem, setEditingItem] = useState(null);
+  const [errors, setErrors] = useState({});
+  
   // Initialize column items
   React.useEffect(() => {
     const groups = groupItemsByStatus(items, getItemStatus);
@@ -138,6 +181,57 @@ const KanbanBoard = ({
   const handleDragOver = (event) => {
     // This is handled by the DndContext onDragOver
   };
+  
+  const openAddModal = (type) => {
+    setModalType(type);
+    setEditingItem(null);
+    setErrors({});
+    setIsModalOpen(true);
+  };
+  
+  const openEditModal = (type, item) => {
+    setModalType(type);
+    setEditingItem(item);
+    setErrors({});
+    setIsModalOpen(true);
+  };
+  
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+    setErrors({});
+  };
+  
+  const handleSubmit = async (formData) => {
+    try {
+      if (modalType === 'project') {
+        if (editingItem) {
+          // Update existing project
+          await onEditProject(editingItem.id, formData);
+        } else {
+          // Create new project
+          await onAddProject(formData);
+        }
+      } else if (modalType === 'task') {
+        if (editingItem) {
+          // Update existing task
+          await onEditTask(editingItem.id, formData);
+        } else {
+          // Create new task
+          await onAddTask(formData);
+        }
+      }
+      
+      closeModal();
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        setErrors(error.response.data);
+      } else {
+        console.error('Error saving:', error);
+        // Handle other errors as needed
+      }
+    }
+  };
 
   return (
     <div className="kanban-board">
@@ -150,8 +244,37 @@ const KanbanBoard = ({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragOver={handleDragOver}
+          onAddItem={openAddModal}
+          onEditItem={openEditModal}
+          modalType={modalType}
+          projects={projects}
         />
       ))}
+      
+      {/* Modal for adding/editing projects/tasks */}
+      <Modal 
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingItem ? `Edit ${modalType === 'project' ? 'Project' : 'Task'}` : `Add ${modalType === 'project' ? 'Project' : 'Task'}`}
+        onSubmit={handleSubmit}
+        submitButtonText={editingItem ? "Update" : "Create"}
+      >
+        {modalType === 'project' && (
+          <ProjectForm 
+            project={editingItem} 
+            onSubmit={handleSubmit} 
+            errors={errors}
+          />
+        )}
+        {modalType === 'task' && (
+          <TaskForm 
+            task={editingItem} 
+            onSubmit={handleSubmit} 
+            errors={errors}
+            projects={projects}
+          />
+        )}
+      </Modal>
     </div>
   );
 };

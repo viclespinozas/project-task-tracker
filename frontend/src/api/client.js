@@ -11,7 +11,14 @@ export const apiClient = {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to parse JSON error for detailed validation errors
+      try {
+        const errorData = await response.json();
+        throw new Error(`${response.status}: ${errorData.detail || response.statusText}`);
+      } catch (e) {
+        // If parsing fails, fall back to basic error
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     }
     
     return response.json();
@@ -27,7 +34,14 @@ export const apiClient = {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to parse JSON error for detailed validation errors
+      try {
+        const errorData = await response.json();
+        throw new Error(`${response.status}: ${errorData.detail || response.statusText}`);
+      } catch (e) {
+        // If parsing fails, fall back to basic error
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     }
     
     return response.json();
@@ -43,7 +57,14 @@ export const apiClient = {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to parse JSON error for detailed validation errors
+      try {
+        const errorData = await response.json();
+        throw new Error(`${response.status}: ${errorData.detail || response.statusText}`);
+      } catch (e) {
+        // If parsing fails, fall back to basic error
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     }
     
     return response.json();
@@ -58,7 +79,14 @@ export const apiClient = {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to parse JSON error for detailed validation errors
+      try {
+        const errorData = await response.json();
+        throw new Error(`${response.status}: ${errorData.detail || response.statusText}`);
+      } catch (e) {
+        // If parsing fails, fall back to basic error
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
     }
     
     return response.json();

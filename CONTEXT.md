@@ -167,6 +167,14 @@ To start the application, run `docker compose up backend` in the project root di
   - visual flag (red border/text) for past_due tasks
   - project filter dropdown populated from GET /projects
   - filters tasks by project_id when selected
+- [x] Added modal component for creating and editing both Projects and Tasks
+  - Modal is a controlled component that maps directly to Create/Update schemas from backend
+  - Uses API client for POST/PATCH operations
+  - Refreshes the board on success
+  - Shows validation errors returned by the API (422 responses) inline in the form
+  - Opens via an "Add card" button per column 
+  - Supports click-to-edit on existing cards
+- [x] Updated apiClient to properly handle JSON error responses for validation errors
 
 ## API Surface - /projects
 

@@ -61,6 +61,30 @@ const ProjectsPage = () => {
     }
   };
 
+  // Function to handle adding a new project
+  const handleAddProject = async (projectData) => {
+    try {
+      const response = await apiClient.post('/projects', projectData);
+      setProjects(prev => [...prev, response.data]);
+    } catch (err) {
+      throw err; // Let the modal handle the error
+    }
+  };
+
+  // Function to handle updating a project
+  const handleEditProject = async (projectId, projectData) => {
+    try {
+      const response = await apiClient.put(`/projects/${projectId}`, projectData);
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId ? response.data : project
+        )
+      );
+    } catch (err) {
+      throw err; // Let the modal handle the error
+    }
+  };
+
   // Function to render project card
   const renderCard = (project) => {
     return (
@@ -100,6 +124,9 @@ const ProjectsPage = () => {
         getItemStatus={getItemStatus}
         onStatusChange={handleStatusChange}
         renderCard={renderCard}
+        onAddProject={handleAddProject}
+        onEditProject={handleEditProject}
+        projects={projects}
       />
     </div>
   );
