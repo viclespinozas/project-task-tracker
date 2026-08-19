@@ -69,18 +69,13 @@ Project (1) -> Task (many)
 ## Directory Layout
 - backend/
 - frontend/
-- docker-compose.yml
-
-## Services
-- **db**: PostgreSQL 16 database service
-  - Primary database: `tracker` (from POSTGRES_DB env var)
-  - Test database: `tracker_test` (created at container init)
-  - Uses named volume `postgres_data` for data persistence
-  - Exposed on port 5432
-
-## Directory Layout
-- backend/
-- frontend/
+  - src/
+    - api/
+      - client.js
+    - pages/
+      - ProjectsPage.jsx
+      - TasksPage.jsx
+  - .env.example
 - docker-compose.yml
 
 ## Services
@@ -147,6 +142,39 @@ To start the application, run `docker compose up backend` in the project root di
   - List tasks filters by project_id, status, and priority, individually and combined
   - Client cannot set past_due or updated_at directly via the API (verify it's ignored/rejected)
   - Update task changes updated_at automatically
+- [x] Created frontend structure with Vite + React app:
+  - src/api/client.js - fetch wrapper reading API base URL from env var VITE_API_URL
+  - src/pages/ProjectsPage.jsx and TasksPage.jsx placeholders
+  - Basic routing (react-router-dom) between /projects and /tasks, with a simple nav header
+  - .env.example in frontend/ with VITE_API_URL=http://localhost:8000/api
+- [x] Created generic KanbanBoard component in frontend/src/components/KanbanBoard.jsx
+- [x] KanbanBoard component is status-agnostic and supports drag-and-drop between columns
+- [x] KanbanBoard component takes props:
+  - items: array of items to display
+  - columns: ordered list of status values + labels (e.g., [{status: 'todo', label: 'To Do'}, {status: 'done', label: 'Done'}])
+  - getItemStatus: function that returns the status of an item
+  - onStatusChange: callback function called when an item's status changes (itemId, newStatus)
+  - renderCard: render-prop for card contents (function that takes an item and returns JSX)
+- [x] ProjectsPage.jsx wired to use KanbanBoard:
+  - fetches projects from API on mount
+  - groups by status (Not Started / In Progress / Done)
+  - renders each card showing name, assignee, priority, progress
+  - handles drag between columns by PATCHing project status via API client
+  - updates local state optimistically and reverts on API failure
+- [x] TasksPage.jsx implemented with KanbanBoard:
+  - shows tasks in columns: Inbox/Waiting/Next/Doing/Done
+  - each card displays name, assignee, priority, due date
+  - visual flag (red border/text) for past_due tasks
+  - project filter dropdown populated from GET /projects
+  - filters tasks by project_id when selected
+- [x] Added modal component for creating and editing both Projects and Tasks
+  - Modal is a controlled component that maps directly to Create/Update schemas from backend
+  - Uses API client for POST/PATCH operations
+  - Refreshes the board on success
+  - Shows validation errors returned by the API (422 responses) inline in the form
+  - Opens via an "Add card" button per column 
+  - Supports click-to-edit on existing cards
+- [x] Updated apiClient to properly handle JSON error responses for validation errors
 
 ## API Surface - /projects
 
@@ -197,4 +225,3 @@ Returns 404 if task doesn't exist.
 ### DELETE /tasks/{id}
 Deletes a task.
 Returns 404 if task doesn't exist.
-
