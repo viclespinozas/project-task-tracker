@@ -177,6 +177,11 @@ To start the application, run `docker compose up backend` in the project root di
 - [x] Updated apiClient to properly handle JSON error responses for validation errors
 - [x] Created frontend Dockerfile using Node.js 18-alpine, building with yarn and serving with 'serve' command
 - [x] Added frontend service to docker-compose.yml that depends_on backend, exposes port 5173, and reads VITE_API_URL from .env
+- [x] Added GitHub Actions CI workflow (.github/workflows/ci.yml) with push and pull_request triggers
+- [x] CI workflow spins up Postgres service container
+- [x] CI workflow installs backend dependencies
+- [x] CI workflow runs alembic upgrade head against CI Postgres
+- [x] CI workflow runs pytest, failing build on any test failure
 
 ## API Surface - /projects
 
