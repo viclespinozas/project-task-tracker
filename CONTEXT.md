@@ -98,6 +98,18 @@ To run the application locally:
    docker-compose exec backend alembic upgrade head
    ```
 
+## Component Contract: KanbanBoard
+
+The KanbanBoard component is a generic, reusable component for drag-and-drop task management. It takes the following props:
+
+- `items`: An array of items to display in the board
+- `columns`: An ordered list of status values and labels, each with `value` and `label` properties
+- `getItemStatus`: A function that takes an item and returns its current status value
+- `onStatusChange`: A callback function called when an item's status changes, with parameters `(itemId, newStatus)`
+- `renderCard`: A render-prop function that takes an item and returns JSX for the card content
+
+The component groups items into columns by status and supports drag-and-drop between columns, calling `onStatusChange(itemId, newStatus)` on drop. It is status-agnostic and can be used with any entity that has a status.
+
 ## Seeding Data
 
 To seed the database with sample projects and tasks for local development or demo purposes:
@@ -113,3 +125,11 @@ To run tests:
 
 ```bash
 docker-compose exec backend pytest
+
+## Build Log
+
+- [8/20/2026] Created generic KanbanBoard component in frontend/src/components/KanbanBoard.jsx
+  - Implemented drag-and-drop functionality using @dnd-kit
+  - Component is status-agnostic and reusable
+  - Takes props: items, columns, getItemStatus, onStatusChange, renderCard
+  - Supports reordering within columns and moving between columns
