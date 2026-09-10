@@ -134,3 +134,9 @@ docker-compose exec backend pytest
   - Takes props: items, columns, getItemStatus, onStatusChange, renderCard
   - Supports reordering within columns and moving between columns
 - [9/10/2026] Updated KanbanBoard component documentation to ensure it matches the generic, reusable contract
+- [9/10/2026] Wired ProjectsPage.jsx to use KanbanBoard component
+  - Fetch projects from API on mount
+  - Group projects by status (Not Started / In Progress / Done)
+  - Render cards showing name, assignee, priority, progress
+  - Handle drag-and-drop with PATCH requests to update project status
+  - Update local state optimistically with revert on API failure
