@@ -144,3 +144,10 @@ docker-compose exec backend pytest
   - Implemented Inbox/Waiting/Next/Doing/Done columns
   - Each card shows name, assignee, priority, due date, and visual flag for past_due tasks
   - Added project filter dropdown populated from GET /projects endpoint
+- [9/10/2026] Added modal forms for creating and editing Projects and Tasks
+  - Created ModalForm component as a reusable controlled form component
+  - Implemented form validation with API error handling for 422 responses
+  - Added "Add card" button per column and click-to-edit functionality
+  - Forms map directly to Create/Update schemas from the backend
+  - Uses API client for POST/PATCH requests
+  - Refreshes the board on success

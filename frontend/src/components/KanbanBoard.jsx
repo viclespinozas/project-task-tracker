@@ -22,7 +22,9 @@ const KanbanBoard = ({
   columns, 
   getItemStatus, 
   onStatusChange, 
-  renderCard 
+  renderCard,
+  onAddItem, // New prop for adding items
+  onEditItem // New prop for editing items
 }) => {
   // Initialize state for each column's items
   const [columnItems, setColumnItems] = useState(() => {
@@ -119,6 +121,7 @@ const KanbanBoard = ({
     setActiveItem(null);
   };
 
+
   return (
     <DndContext
       sensors={sensors}
@@ -133,6 +136,14 @@ const KanbanBoard = ({
             <div className="kanban-column-header">
               <h3>{column.label}</h3>
               <span className="kanban-column-count">{columnItems[column.value]?.length || 0}</span>
+              {onAddItem && (
+                <button 
+                  className="add-card-button"
+                  onClick={() => onAddItem(column.value)}
+                >
+                  Add Card
+                </button>
+              )}
             </div>
             <SortableContext
               items={(columnItems[column.value] || []).map(item => item.id)}
@@ -140,7 +151,11 @@ const KanbanBoard = ({
             >
               <div className="kanban-column-items">
                 {(columnItems[column.value] || []).map(item => (
-                   <div key={item.id} className="kanban-card">
+                   <div 
+                     key={item.id} 
+                     className="kanban-card"
+                     onClick={() => onEditItem && onEditItem(item)}
+                   >
                      {renderCard(item)}
                    </div>
                 ))}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import KanbanBoard from '../components/KanbanBoard';
+import ModalForm from '../components/ModalForm';
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState([]);
@@ -8,6 +9,11 @@ const TasksPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('task'); // 'project' or 'task'
+  const [modalTitle, setModalTitle] = useState('');
+  const [initialModalData, setInitialModalData] = useState(null);
+  const [validationErrors, setValidationErrors] = useState(null);
 
   // Define columns for the kanban board
   const columns = [
@@ -93,6 +99,50 @@ const TasksPage = () => {
     );
   };
 
+  // Handle adding a new task
+  const handleAddTask = (status) => {
+    setModalTitle('Create Task');
+    setInitialModalData({ status });
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Handle editing an existing task
+  const handleEditTask = (task) => {
+    setModalTitle('Edit Task');
+    setInitialModalData(task);
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Submit form data to backend
+  const handleSubmitForm = async (formData) => {
+    try {
+      if (initialModalData && initialModalData.id) {
+        // Update existing task
+        await apiClient.patch(`/tasks/${initialModalData.id}`, formData);
+        // Refresh tasks list
+        const response = await apiClient.get('/tasks');
+        setTasks(response);
+      } else {
+        // Create new task
+        await apiClient.post('/tasks', formData);
+        // Refresh tasks list
+        const response = await apiClient.get('/tasks');
+        setTasks(response);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        // Handle validation errors
+        setValidationErrors(error.response.data.detail || {});
+      } else {
+        setError('Failed to save task');
+        console.error('Failed to save task:', error);
+      }
+    }
+  };
+
   // Filter tasks by selected project
   const filteredTasks = selectedProjectId 
     ? tasks.filter(task => task.project_id === selectedProjectId)
@@ -143,6 +193,18 @@ const TasksPage = () => {
         getItemStatus={getItemStatus}
         onStatusChange={onStatusChange}
         renderCard={renderCard}
+        onAddItem={handleAddTask}
+        onEditItem={handleEditTask}
+      />
+      
+      <ModalForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmitForm}
+        title={modalTitle}
+        type="task"
+        initialData={initialModalData}
+        validationErrors={validationErrors}
       />
     </div>
   );

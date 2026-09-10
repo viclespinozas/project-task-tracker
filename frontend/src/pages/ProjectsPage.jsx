@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import KanbanBoard from '../components/KanbanBoard';
+import ModalForm from '../components/ModalForm';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('project'); // 'project' or 'task'
+  const [modalTitle, setModalTitle] = useState('');
+  const [initialModalData, setInitialModalData] = useState(null);
+  const [validationErrors, setValidationErrors] = useState(null);
 
   // Define columns for the kanban board
   const columns = [
@@ -86,6 +92,50 @@ const ProjectsPage = () => {
     );
   };
 
+  // Handle adding a new project
+  const handleAddProject = (status) => {
+    setModalTitle('Create Project');
+    setInitialModalData({ status });
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Handle editing an existing project
+  const handleEditProject = (project) => {
+    setModalTitle('Edit Project');
+    setInitialModalData(project);
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Submit form data to backend
+  const handleSubmitForm = async (formData) => {
+    try {
+      if (initialModalData && initialModalData.id) {
+        // Update existing project
+        await apiClient.patch(`/projects/${initialModalData.id}`, formData);
+        // Refresh projects list
+        const response = await apiClient.get('/projects');
+        setProjects(response);
+      } else {
+        // Create new project
+        await apiClient.post('/projects', formData);
+        // Refresh projects list
+        const response = await apiClient.get('/projects');
+        setProjects(response);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        // Handle validation errors
+        setValidationErrors(error.response.data.detail || {});
+      } else {
+        setError('Failed to save project');
+        console.error('Failed to save project:', error);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -113,6 +163,18 @@ const ProjectsPage = () => {
         getItemStatus={getItemStatus}
         onStatusChange={onStatusChange}
         renderCard={renderCard}
+        onAddItem={handleAddProject}
+        onEditItem={handleEditProject}
+      />
+      
+      <ModalForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmitForm}
+        title={modalTitle}
+        type="project"
+        initialData={initialModalData}
+        validationErrors={validationErrors}
       />
     </div>
   );
