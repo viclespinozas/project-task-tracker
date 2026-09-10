@@ -133,3 +133,4 @@ docker-compose exec backend pytest
   - Component is status-agnostic and reusable
   - Takes props: items, columns, getItemStatus, onStatusChange, renderCard
   - Supports reordering within columns and moving between columns
+- [9/10/2026] Updated KanbanBoard component documentation to ensure it matches the generic, reusable contract
