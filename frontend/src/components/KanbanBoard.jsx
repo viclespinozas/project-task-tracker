@@ -140,9 +140,9 @@ const KanbanBoard = ({
             >
               <div className="kanban-column-items">
                 {(columnItems[column.value] || []).map(item => (
-                  <div key={item.id} className="kanban-card">
-                    {renderCard(item)}
-                  </div>
+                   <div key={item.id} className="kanban-card">
+                     {renderCard(item)}
+                   </div>
                 ))}
               </div>
             </SortableContext>

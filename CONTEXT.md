@@ -140,3 +140,7 @@ docker-compose exec backend pytest
   - Render cards showing name, assignee, priority, progress
   - Handle drag-and-drop with PATCH requests to update project status
   - Update local state optimistically with revert on API failure
+- [9/10/2026] Wired TasksPage.jsx to use KanbanBoard component with project filter and past_due indicators
+  - Implemented Inbox/Waiting/Next/Doing/Done columns
+  - Each card shows name, assignee, priority, due date, and visual flag for past_due tasks
+  - Added project filter dropdown populated from GET /projects endpoint
