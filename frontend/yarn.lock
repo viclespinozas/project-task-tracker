@@ -113,10 +113,17 @@
   resolved "https://registry.yarnpkg.com/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.2.5.tgz#7bbd08cfda6a98de9b756472c772a36ebb7229bc"
   integrity sha512-e/SXpgISz+IoqVcSSI0rx/d/he8zqLex+/rCWpnHpmVfmPIUjag9H6P7zotf0gJHwPUhQxZ/mF8tr6acebT9yw==
 
-"@rolldown/pluginutils@^1.0.0":
+"@rolldown/pluginutils@^1.0.0", "@rolldown/pluginutils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz#e3fcee093fbb5ce765e1ad088ff4de2889f6f9be"
   integrity sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==
+
+"@vitejs/plugin-react@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@vitejs/plugin-react/-/plugin-react-6.1.0.tgz#a3d7a3b998c618385d076e390b74398c3d8c65bc"
+  integrity sha512-qd2BzUBehkov86WFhg0JkEFEYyCLG9uPCe6qWTY/kRlss9OvJrOF2UbIWT7p+8IzZHkEu0DNGHc4HSv+JdDLsw==
+  dependencies:
+    "@rolldown/pluginutils" "^1.0.1"
 
 cookie@^1.0.1:
   version "1.1.1"
