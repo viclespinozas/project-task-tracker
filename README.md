@@ -45,9 +45,16 @@ docker-compose exec backend alembic upgrade head
 To seed the database with sample projects and tasks for local development or demo purposes:
 
 ```bash
-cd backend
-python app/scripts/seed.py
+cd backend && python app/scripts/seed.py
 ```
+
+The seed script creates:
+- 4 Projects with different statuses (Not Started, In Progress, Done)
+- 8 Tasks covering all status values (Inbox, Waiting, Next, Doing, Done)
+- All priority levels (High, Medium, Low) 
+- At least one genuinely past-due task
+
+This script is designed for local development and demo purposes only.
 
 ## Running Tests
 
