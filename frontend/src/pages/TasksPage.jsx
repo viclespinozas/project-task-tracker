@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import KanbanBoard from '../components/KanbanBoard';
 import { apiClient } from '../api/client';
+import KanbanBoard from '../components/KanbanBoard';
+import ModalForm from '../components/ModalForm';
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState([]);
@@ -8,153 +9,150 @@ const TasksPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('task'); // 'project' or 'task'
+  const [modalTitle, setModalTitle] = useState('');
+  const [initialModalData, setInitialModalData] = useState(null);
+  const [validationErrors, setValidationErrors] = useState(null);
 
-  // Define the columns for task status
+  // Define columns for the kanban board
   const columns = [
-    { status: 'Inbox', label: 'Inbox' },
-    { status: 'Waiting', label: 'Waiting' },
-    { status: 'Next', label: 'Next' },
-    { status: 'Doing', label: 'Doing' },
-    { status: 'Done', label: 'Done' }
+    { value: 'Inbox', label: 'Inbox' },
+    { value: 'Waiting', label: 'Waiting' },
+    { value: 'Next', label: 'Next' },
+    { value: 'Doing', label: 'Doing' },
+    { value: 'Done', label: 'Done' }
   ];
 
   // Fetch projects and tasks on component mount
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchTasksAndProjects = async () => {
       try {
         setLoading(true);
         
-        // Fetch projects for the filter dropdown
-        const projectsData = await apiClient.get('/projects');
-        setProjects(projectsData);
+        // Fetch all projects for the filter dropdown
+        const projectsResponse = await apiClient.get('/projects');
+        setProjects(projectsResponse);
         
-        // Fetch tasks (initially all tasks, will be filtered later)
-        const tasksData = await apiClient.get('/tasks');
-        setTasks(tasksData);
+        // Fetch all tasks
+        const tasksResponse = await apiClient.get('/tasks');
+        setTasks(tasksResponse);
         setError(null);
       } catch (err) {
-        setError(err.message);
+        console.error('Failed to fetch data:', err);
+        setError('Failed to load tasks and projects');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInitialData();
+    fetchTasksAndProjects();
   }, []);
 
-  // Fetch tasks when project filter changes
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        
-        // Build query parameters
-        let endpoint = '/tasks';
-        const params = new URLSearchParams();
-        
-        if (selectedProjectId) {
-          params.append('project_id', selectedProjectId);
-        }
-        
-        if (params.toString()) {
-          endpoint += `?${params.toString()}`;
-        }
-        
-        const tasksData = await apiClient.get(endpoint);
-        setTasks(tasksData);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only fetch tasks when selectedProjectId changes
-    if (selectedProjectId !== null) {
-      fetchTasks();
-    }
-  }, [selectedProjectId]);
-
-  // Function to get task status
+  // Get task status for kanban board
   const getItemStatus = (task) => {
-    return task.status;
+    return task.status || 'Inbox';
   };
 
-  // Function to handle status change via drag-and-drop
-  const handleStatusChange = async (taskId, newStatus) => {
-    try {
-      // Optimistically update local state
-      setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId ? { ...task, status: newStatus } : task
-        )
-      );
+  // Handle status change via drag and drop
+  const onStatusChange = async (taskId, newStatus) => {
+    // Optimistically update local state
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
 
-      // PATCH the task's status via API
-      await apiClient.patch(`/tasks/${taskId}`, { status: newStatus });
+    try {
+      // PATCH the task status to backend
+      await apiClient.patch(`/tasks/${taskId}`, { 
+        status: newStatus 
+      });
     } catch (err) {
+      console.error('Failed to update task status:', err);
       // Revert local state on API failure
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId ? { ...task, status: task.status } : task
         )
       );
-      console.error('Failed to update task status:', err);
-      // Optionally show user error message here
+      setError('Failed to update task status');
     }
   };
 
-  // Function to handle adding a new task
-  const handleAddTask = async (taskData) => {
-    try {
-      const response = await apiClient.post('/tasks', taskData);
-      setTasks(prev => [...prev, response.data]);
-    } catch (err) {
-      throw err; // Let the modal handle the error
-    }
-  };
-
-  // Function to handle updating a task
-  const handleEditTask = async (taskId, taskData) => {
-    try {
-      const response = await apiClient.put(`/tasks/${taskId}`, taskData);
-      setTasks(prev => 
-        prev.map(task => 
-          task.id === taskId ? response.data : task
-        )
-      );
-    } catch (err) {
-      throw err; // Let the modal handle the error
-    }
-  };
-
-  // Function to render task card
+  // Render card content for each task
   const renderCard = (task) => {
-    const isPastDue = task.past_due;
+    const isPastDue = task.due_date && new Date(task.due_date) < new Date();
     
     return (
-      <div 
-        key={task.id} 
-        className={`kanban-card ${isPastDue ? 'past-due' : ''}`}
-      >
-        <h3>{task.name}</h3>
-        <p>Assignee: {task.assignee || 'Unassigned'}</p>
-        <p>Priority: {task.priority}</p>
-        <p>Due Date: {task.due_date || 'No due date'}</p>
-        {isPastDue && (
-          <div className="past-due-flag">
-            OVERDUE
-          </div>
+      <div className={`kanban-card-content ${isPastDue ? 'past-due' : ''}`}>
+        <h4>{task.name}</h4>
+        {task.assignee && <p>Assignee: {task.assignee}</p>}
+        {task.priority && <p>Priority: {task.priority}</p>}
+        {task.due_date && (
+          <p>
+            Due: {new Date(task.due_date).toLocaleDateString()}
+            {isPastDue && <span className="past-due-flag"> (PAST DUE)</span>}
+          </p>
         )}
       </div>
     );
   };
 
+  // Handle adding a new task
+  const handleAddTask = (status) => {
+    setModalTitle('Create Task');
+    setInitialModalData({ status });
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Handle editing an existing task
+  const handleEditTask = (task) => {
+    setModalTitle('Edit Task');
+    setInitialModalData(task);
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Submit form data to backend
+  const handleSubmitForm = async (formData) => {
+    try {
+      if (initialModalData && initialModalData.id) {
+        // Update existing task
+        await apiClient.patch(`/tasks/${initialModalData.id}`, formData);
+        // Refresh tasks list
+        const response = await apiClient.get('/tasks');
+        setTasks(response);
+      } else {
+        // Create new task
+        await apiClient.post('/tasks', formData);
+        // Refresh tasks list
+        const response = await apiClient.get('/tasks');
+        setTasks(response);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        // Handle validation errors
+        setValidationErrors(error.response.data.detail || {});
+      } else {
+        setError('Failed to save task');
+        console.error('Failed to save task:', error);
+      }
+    }
+  };
+
+  // Filter tasks by selected project
+  const filteredTasks = selectedProjectId 
+    ? tasks.filter(task => task.project_id === selectedProjectId)
+    : tasks;
+
   if (loading) {
     return (
       <div>
         <h1>Tasks</h1>
-        <p>Loading tasks...</p>
+        <p>Loading tasks and projects...</p>
       </div>
     );
   }
@@ -163,7 +161,7 @@ const TasksPage = () => {
     return (
       <div>
         <h1>Tasks</h1>
-        <p>Error loading tasks: {error}</p>
+        <p>Error: {error}</p>
       </div>
     );
   }
@@ -172,11 +170,11 @@ const TasksPage = () => {
     <div>
       <h1>Tasks</h1>
       
-      {/* Project Filter Dropdown */}
+      {/* Project filter dropdown */}
       <div className="project-filter">
-        <label htmlFor="project-filter">Filter by Project: </label>
+        <label htmlFor="projectFilter">Filter by Project: </label>
         <select 
-          id="project-filter"
+          id="projectFilter"
           value={selectedProjectId || ''}
           onChange={(e) => setSelectedProjectId(e.target.value ? parseInt(e.target.value) : null)}
         >
@@ -190,17 +188,26 @@ const TasksPage = () => {
       </div>
       
       <KanbanBoard
-        items={tasks}
+        items={filteredTasks}
         columns={columns}
         getItemStatus={getItemStatus}
-        onStatusChange={handleStatusChange}
+        onStatusChange={onStatusChange}
         renderCard={renderCard}
-        onAddTask={handleAddTask}
-        onEditTask={handleEditTask}
-        projects={projects}
+        onAddItem={handleAddTask}
+        onEditItem={handleEditTask}
+      />
+      
+      <ModalForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmitForm}
+        title={modalTitle}
+        type="task"
+        initialData={initialModalData}
+        validationErrors={validationErrors}
       />
     </div>
   );
-};
+}
 
-export default TasksPage;
+export default TasksPage

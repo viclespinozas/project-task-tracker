@@ -98,14 +98,34 @@ To run the application locally:
    docker-compose exec backend alembic upgrade head
    ```
 
+## Component Contract: KanbanBoard
+
+The KanbanBoard component is a generic, reusable component for drag-and-drop task management. It takes the following props:
+
+- `items`: An array of items to display in the board
+- `columns`: An ordered list of status values and labels, each with `value` and `label` properties
+- `getItemStatus`: A function that takes an item and returns its current status value
+- `onStatusChange`: A callback function called when an item's status changes, with parameters `(itemId, newStatus)`
+- `renderCard`: A render-prop function that takes an item and returns JSX for the card content
+
+The component groups items into columns by status and supports drag-and-drop between columns, calling `onStatusChange(itemId, newStatus)` on drop. It is status-agnostic and can be used with any entity that has a status.
+
 ## Seeding Data
 
 To seed the database with sample projects and tasks for local development or demo purposes:
 
 ```bash
-cd backend
-python app/scripts/seed.py
+cd backend && python app/scripts/seed.py
 ```
+
+The seed script creates:
+- 4 Projects with different statuses (Not Started, In Progress, Done)
+- 8 Tasks covering all status values (Inbox, Waiting, Next, Doing, Done)
+- All priority levels (High, Medium, Low) 
+- At least one genuinely past-due task
+
+This script is designed for local development and demo purposes only.
+
 
 ## Testing
 
@@ -113,3 +133,30 @@ To run tests:
 
 ```bash
 docker-compose exec backend pytest
+```
+
+## Build Log
+
+- [8/20/2026] Created generic KanbanBoard component in frontend/src/components/KanbanBoard.jsx
+  - Implemented drag-and-drop functionality using @dnd-kit
+  - Component is status-agnostic and reusable
+  - Takes props: items, columns, getItemStatus, onStatusChange, renderCard
+  - Supports reordering within columns and moving between columns
+- [9/10/2026] Updated KanbanBoard component documentation to ensure it matches the generic, reusable contract
+- [9/10/2026] Wired ProjectsPage.jsx to use KanbanBoard component
+  - Fetch projects from API on mount
+  - Group projects by status (Not Started / In Progress / Done)
+  - Render cards showing name, assignee, priority, progress
+  - Handle drag-and-drop with PATCH requests to update project status
+  - Update local state optimistically with revert on API failure
+- [9/10/2026] Wired TasksPage.jsx to use KanbanBoard component with project filter and past_due indicators
+  - Implemented Inbox/Waiting/Next/Doing/Done columns
+  - Each card shows name, assignee, priority, due date, and visual flag for past_due tasks
+  - Added project filter dropdown populated from GET /projects endpoint
+- [9/10/2026] Added modal forms for creating and editing Projects and Tasks
+  - Created ModalForm component as a reusable controlled form component
+  - Implemented form validation with API error handling for 422 responses
+  - Added "Add card" button per column and click-to-edit functionality
+  - Forms map directly to Create/Update schemas from the backend
+  - Uses API client for POST/PATCH requests
+  - Refreshes the board on success

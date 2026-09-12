@@ -8,15 +8,38 @@ including at least one genuinely past-due task.
 import os
 import sys
 import datetime
-from sqlalchemy import create_engine
+
+# Add the current directory to Python path so we can import from it
+sys.path.insert(0, os.path.dirname(__file__))
+
+# Direct database connection approach
+from sqlalchemy import create_engine, Column, Integer, String, Date, Text, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Add the backend directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+# Set up database connection using the same URL as in .env
+DATABASE_URL = "sqlite:///../../test.db"
 
-from backend.app.db.session import Base, engine
-from backend.app.models.project import Project
-from backend.app.models.task import Task
+engine = create_engine(DATABASE_URL)
+Base = declarative_base()
+
+# Define models directly to match the existing schema
+class Project(Base):
+    __tablename__ = "projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    status = Column(String)
+
+class Task(Base):
+    __tablename__ = "tasks"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    status = Column(String)
+    priority = Column(String)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    due_date = Column(Date)
 
 def seed_database():
     """Seed the database with realistic test data."""
@@ -37,22 +60,18 @@ def seed_database():
         projects = [
             Project(
                 name="Website Redesign",
-                description="Complete overhaul of company website",
                 status="Not Started"
             ),
             Project(
                 name="Mobile App Development",
-                description="Development of new mobile application",
                 status="In Progress"
             ),
             Project(
                 name="Marketing Campaign",
-                description="Q3 marketing initiative",
                 status="Done"
             ),
             Project(
                 name="Database Migration",
-                description="Migrate from old system to new database",
                 status="Not Started"
             )
         ]
@@ -71,7 +90,6 @@ def seed_database():
             # Active tasks with different priorities
             Task(
                 name="Design homepage layout",
-                description="Create wireframes for homepage",
                 status="Inbox",
                 priority="High",
                 project_id=project_ids[0],
@@ -79,7 +97,6 @@ def seed_database():
             ),
             Task(
                 name="Implement user authentication",
-                description="Set up login and registration system",
                 status="Waiting",
                 priority="Medium",
                 project_id=project_ids[1],
@@ -87,7 +104,6 @@ def seed_database():
             ),
             Task(
                 name="Write API documentation",
-                description="Document all API endpoints",
                 status="Done",
                 priority="Low",
                 project_id=project_ids[2],
@@ -95,7 +111,6 @@ def seed_database():
             ),
             Task(
                 name="Setup CI/CD pipeline",
-                description="Configure automated deployment",
                 status="Next",
                 priority="High",
                 project_id=project_ids[3],
@@ -105,7 +120,6 @@ def seed_database():
             # Past-due task (this should be genuinely past-due)
             Task(
                 name="Fix critical security vulnerability",
-                description="Address reported security issue",
                 status="Doing",
                 priority="High",
                 project_id=project_ids[0],
@@ -115,7 +129,6 @@ def seed_database():
             # Additional tasks to cover all combinations
             Task(
                 name="Prepare presentation slides",
-                description="Create slides for quarterly review",
                 status="Inbox",
                 priority="Medium",
                 project_id=project_ids[1],
@@ -123,7 +136,6 @@ def seed_database():
             ),
             Task(
                 name="Update dependencies",
-                description="Upgrade all npm packages to latest versions",
                 status="Waiting",
                 priority="Low",
                 project_id=project_ids[2],
@@ -131,7 +143,6 @@ def seed_database():
             ),
             Task(
                 name="Performance optimization",
-                description="Improve application loading times",
                 status="Done",
                 priority="High",
                 project_id=project_ids[3],

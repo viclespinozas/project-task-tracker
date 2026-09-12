@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import KanbanBoard from '../components/KanbanBoard';
 import { apiClient } from '../api/client';
+import KanbanBoard from '../components/KanbanBoard';
+import ModalForm from '../components/ModalForm';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('project'); // 'project' or 'task'
+  const [modalTitle, setModalTitle] = useState('');
+  const [initialModalData, setInitialModalData] = useState(null);
+  const [validationErrors, setValidationErrors] = useState(null);
 
-  // Define the columns for project status
+  // Define columns for the kanban board
   const columns = [
-    { status: 'Not Started', label: 'Not Started' },
-    { status: 'In Progress', label: 'In Progress' },
-    { status: 'Done', label: 'Done' }
+    { value: 'Not Started', label: 'Not Started' },
+    { value: 'In Progress', label: 'In Progress' },
+    { value: 'Done', label: 'Done' }
   ];
 
   // Fetch projects on component mount
@@ -19,11 +25,12 @@ const ProjectsPage = () => {
     const fetchProjects = async () => {
       try {
         setLoading(true);
-        const data = await apiClient.get('/projects');
-        setProjects(data);
+        const response = await apiClient.get('/projects');
+        setProjects(response);
         setError(null);
       } catch (err) {
-        setError(err.message);
+        console.error('Failed to fetch projects:', err);
+        setError('Failed to load projects');
       } finally {
         setLoading(false);
       }
@@ -32,69 +39,101 @@ const ProjectsPage = () => {
     fetchProjects();
   }, []);
 
-  // Function to get project status
+  // Get project status for kanban board
   const getItemStatus = (project) => {
-    return project.status;
+    return project.status || 'Not Started';
   };
 
-  // Function to handle status change via drag-and-drop
-  const handleStatusChange = async (projectId, newStatus) => {
-    try {
-      // Optimistically update local state
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === projectId ? { ...project, status: newStatus } : project
-        )
-      );
+  // Handle status change via drag and drop
+  const onStatusChange = async (projectId, newStatus) => {
+    // Optimistically update local state
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === projectId ? { ...project, status: newStatus } : project
+      )
+    );
 
-      // PATCH the project's status via API
-      await apiClient.patch(`/projects/${projectId}`, { status: newStatus });
+    try {
+      // PATCH the project status to backend
+      await apiClient.patch(`/projects/${projectId}`, { 
+        status: newStatus 
+      });
     } catch (err) {
+      console.error('Failed to update project status:', err);
       // Revert local state on API failure
       setProjects(prevProjects => 
         prevProjects.map(project => 
           project.id === projectId ? { ...project, status: project.status } : project
         )
       );
-      console.error('Failed to update project status:', err);
-      // Optionally show user error message here
+      setError('Failed to update project status');
     }
   };
 
-  // Function to handle adding a new project
-  const handleAddProject = async (projectData) => {
-    try {
-      const response = await apiClient.post('/projects', projectData);
-      setProjects(prev => [...prev, response.data]);
-    } catch (err) {
-      throw err; // Let the modal handle the error
-    }
-  };
-
-  // Function to handle updating a project
-  const handleEditProject = async (projectId, projectData) => {
-    try {
-      const response = await apiClient.put(`/projects/${projectId}`, projectData);
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectId ? response.data : project
-        )
-      );
-    } catch (err) {
-      throw err; // Let the modal handle the error
-    }
-  };
-
-  // Function to render project card
+  // Render card content for each project
   const renderCard = (project) => {
     return (
-      <div key={project.id} className="kanban-card">
-        <h3>{project.name}</h3>
-        <p>Assignee: {project.assignee || 'Unassigned'}</p>
-        <p>Priority: {project.priority}</p>
-        <p>Progress: {project.progress}%</p>
+      <div className="kanban-card-content">
+        <h4>{project.name}</h4>
+        {project.assignee && <p>Assignee: {project.assignee}</p>}
+        {project.priority && <p>Priority: {project.priority}</p>}
+        {project.progress !== null && project.progress !== undefined && (
+          <div>
+            <p>Progress: {project.progress}%</p>
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${project.progress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
       </div>
     );
+  };
+
+  // Handle adding a new project
+  const handleAddProject = (status) => {
+    setModalTitle('Create Project');
+    setInitialModalData({ status });
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Handle editing an existing project
+  const handleEditProject = (project) => {
+    setModalTitle('Edit Project');
+    setInitialModalData(project);
+    setIsModalOpen(true);
+    setValidationErrors(null);
+  };
+
+  // Submit form data to backend
+  const handleSubmitForm = async (formData) => {
+    try {
+      if (initialModalData && initialModalData.id) {
+        // Update existing project
+        await apiClient.patch(`/projects/${initialModalData.id}`, formData);
+        // Refresh projects list
+        const response = await apiClient.get('/projects');
+        setProjects(response);
+      } else {
+        // Create new project
+        await apiClient.post('/projects', formData);
+        // Refresh projects list
+        const response = await apiClient.get('/projects');
+        setProjects(response);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        // Handle validation errors
+        setValidationErrors(error.response.data.detail || {});
+      } else {
+        setError('Failed to save project');
+        console.error('Failed to save project:', error);
+      }
+    }
   };
 
   if (loading) {
@@ -110,7 +149,7 @@ const ProjectsPage = () => {
     return (
       <div>
         <h1>Projects</h1>
-        <p>Error loading projects: {error}</p>
+        <p>Error: {error}</p>
       </div>
     );
   }
@@ -122,14 +161,23 @@ const ProjectsPage = () => {
         items={projects}
         columns={columns}
         getItemStatus={getItemStatus}
-        onStatusChange={handleStatusChange}
+        onStatusChange={onStatusChange}
         renderCard={renderCard}
-        onAddProject={handleAddProject}
-        onEditProject={handleEditProject}
-        projects={projects}
+        onAddItem={handleAddProject}
+        onEditItem={handleEditProject}
+      />
+      
+      <ModalForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmitForm}
+        title={modalTitle}
+        type="project"
+        initialData={initialModalData}
+        validationErrors={validationErrors}
       />
     </div>
   );
-};
+}
 
-export default ProjectsPage;
+export default ProjectsPage

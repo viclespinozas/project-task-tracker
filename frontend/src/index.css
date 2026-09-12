@@ -1,0 +1,45 @@
+header {
+  background-color: #222;
+  padding: 1rem;
+  color: white;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Task page styling */
+.project-filter {
+  margin-bottom: 1rem;
+}
+
+.project-filter label {
+  margin-right: 0.5rem;
+}
+
+.project-filter select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.kanban-card-content.past-due {
+  border-left: 4px solid red;
+  color: red;
+  font-weight: bold;
+}
+
+.kanban-card-content.past-due-flag {
+  color: red;
+  font-weight: bold;
+}
