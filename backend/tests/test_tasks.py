@@ -124,7 +124,7 @@ def test_past_due_is_false_when_status_is_done_even_if_due_date_is_in_past(clien
     task_data = TEST_TASK_DATA.copy()
     task_data["project_id"] = created_project["id"]
     task_data["due_date"] = "2020-01-01"  # Past date
-    task_data["status"] = "DONE"
+    task_data["status"] = "Done"
     
     response = client.post("/api/tasks", json=task_data)
     assert response.status_code == 201
@@ -184,7 +184,7 @@ def test_list_tasks_filters_by_status(client, db_session):
     
     task_data2 = TEST_TASK_DATA.copy()
     task_data2["project_id"] = created_project["id"]
-    task_data2["status"] = "DONE"
+    task_data2["status"] = "Done"
     
     response1 = client.post("/api/tasks", json=task_data1)
     assert response1.status_code == 201
@@ -249,7 +249,7 @@ def test_list_tasks_filters_by_project_id_status_and_priority_combined(client, d
     
     task_data2 = TEST_TASK_DATA.copy()
     task_data2["project_id"] = created_project["id"]
-    task_data2["status"] = "DONE"
+    task_data2["status"] = "Done"
     task_data2["priority"] = "Low"
     
     response1 = client.post("/api/tasks", json=task_data1)

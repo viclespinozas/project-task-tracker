@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from app.db.session import Base, engine
 from sqlalchemy.orm import sessionmaker
@@ -10,8 +12,8 @@ from app.services.task_service import compute_past_due
 # Test data - matching the actual task model fields
 TEST_PROJECT_DATA = {
     "name": "Test Project",
-    "start_date": "2023-01-01",
-    "end_date": "2023-12-31",
+    "start_date": date(2023, 1, 1),
+    "end_date": date(2023, 12, 31),
     "status": "active",
     "progress": 50
 }
@@ -20,7 +22,7 @@ TEST_TASK_DATA = {
     "name": "Test Task",
     "project_id": 1,
     "status": "active",
-    "due_date": "2023-12-31",
+    "due_date": date(2023, 12, 31),
     "priority": "high"
 }
 
@@ -60,7 +62,7 @@ def test_create_task_with_valid_project_id_succeeds():
         assert task.name == task_data["name"]
         assert task.project_id == project.id
         assert task.status == task_data["status"]
-        assert task.due_date == date.fromisoformat(task_data["due_date"])
+        assert task.due_date == task_data["due_date"]
         assert task.priority == task_data["priority"]
         
     finally:
@@ -117,7 +119,7 @@ def test_past_due_is_true_when_due_date_is_in_the_past_and_status_not_done():
 def test_past_due_is_false_when_status_is_done_even_if_due_date_is_in_the_past():
     """Test that past_due is false when status == Done even if due_date is in the past."""
     # Test the compute_past_due function directly
-    result = compute_past_due(date(2020, 1, 1), "DONE")
+    result = compute_past_due(date(2020, 1, 1), "Done")
     assert result is False
 
 
@@ -152,7 +154,7 @@ def test_list_tasks_filters_by_project_id():
         
         # Create tasks with different project IDs
         task1 = Task(name="Task 1", project_id=project.id, status="active", due_date=date(2023, 12, 31), priority="high")
-        task2 = Task(name="Task 2", project_id=project.id, status="DONE", due_date=date(2023, 12, 31), priority="low")
+        task2 = Task(name="Task 2", project_id=project.id, status="Done", due_date=date(2023, 12, 31), priority="low")
         task3 = Task(name="Task 3", project_id=project.id + 1, status="active", due_date=date(2023, 12, 31), priority="medium")  # Different project
         
         db.add(task1)
@@ -194,7 +196,7 @@ def test_list_tasks_filters_by_status():
         
         # Create tasks with different statuses
         task1 = Task(name="Active Task", project_id=project.id, status="active", due_date=date(2023, 12, 31), priority="high")
-        task2 = Task(name="Done Task", project_id=project.id, status="DONE", due_date=date(2023, 12, 31), priority="low")
+        task2 = Task(name="Done Task", project_id=project.id, status="Done", due_date=date(2023, 12, 31), priority="low")
         
         db.add(task1)
         db.add(task2)
@@ -274,7 +276,7 @@ def test_list_tasks_combines_filters():
         
         # Create tasks with different combinations
         task1 = Task(name="Active High Priority Task", project_id=project.id, status="active", due_date=date(2023, 12, 31), priority="high")
-        task2 = Task(name="Done High Priority Task", project_id=project.id, status="DONE", due_date=date(2023, 12, 31), priority="high")
+        task2 = Task(name="Done High Priority Task", project_id=project.id, status="Done", due_date=date(2023, 12, 31), priority="high")
         task3 = Task(name="Active Low Priority Task", project_id=project.id, status="active", due_date=date(2023, 12, 31), priority="low")
         
         db.add(task1)
@@ -342,12 +344,17 @@ def test_update_task_changes_updated_at_automatically():
         db.refresh(task)
         
         original_updated_at = task.updated_at
-        
+
+        # SQLite's CURRENT_TIMESTAMP has only second-level resolution, so without
+        # this delay the create and update below can land in the same second and
+        # produce an identical updated_at, making the assertion below flaky.
+        time.sleep(1)
+
         # Update the task
         task.name = "Updated Task Name"
         db.commit()
         db.refresh(task)
-        
+
         # Verify that updated_at was changed automatically
         assert task.updated_at != original_updated_at
         
