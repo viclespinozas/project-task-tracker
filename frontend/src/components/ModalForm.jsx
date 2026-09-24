@@ -51,9 +51,15 @@ const ModalForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
+    // Blank <input type="date"> fields yield '', which the backend rejects as an
+    // invalid date — send null instead so optional dates can be left empty.
+    const payload = type === 'project'
+      ? { ...formData, start_date: formData.start_date || null, end_date: formData.end_date || null }
+      : { ...formData, due_date: formData.due_date || null };
+
     try {
-      await onSubmit(formData);
+      await onSubmit(payload);
       onClose();
     } catch (error) {
       // Validation errors are handled by the parent component

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -16,33 +16,43 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// Group items into their columns by status
+const groupItemsByColumn = (items, columns, getItemStatus) => {
+  const grouped = {};
+  columns.forEach(column => {
+    grouped[column.value] = [];
+  });
+
+  items.forEach(item => {
+    const status = getItemStatus(item);
+    if (grouped[status]) {
+      grouped[status].push(item);
+    }
+  });
+
+  return grouped;
+};
+
 // KanbanBoard component - a generic, reusable component for drag-and-drop task management
-const KanbanBoard = ({ 
-  items, 
-  columns, 
-  getItemStatus, 
-  onStatusChange, 
+const KanbanBoard = ({
+  items,
+  columns,
+  getItemStatus,
+  onStatusChange,
   renderCard,
   onAddItem, // New prop for adding items
   onEditItem // New prop for editing items
 }) => {
   // Initialize state for each column's items
-  const [columnItems, setColumnItems] = useState(() => {
-    const initialItems = {};
-    columns.forEach(column => {
-      initialItems[column.value] = [];
-    });
-    
-    // Group items by their status
-    items.forEach(item => {
-      const status = getItemStatus(item);
-      if (initialItems[status]) {
-        initialItems[status].push(item);
-      }
-    });
-    
-    return initialItems;
-  });
+  const [columnItems, setColumnItems] = useState(() => groupItemsByColumn(items, columns, getItemStatus));
+
+  // Resync when the underlying items change (create/edit/delete/refetch) — without
+  // this, columnItems only ever reflected the props at mount time, so the board
+  // never showed changes made after the initial load without a full page reload.
+  useEffect(() => {
+    setColumnItems(groupItemsByColumn(items, columns, getItemStatus));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   // Track currently dragged item
   const [activeItem, setActiveItem] = useState(null);
