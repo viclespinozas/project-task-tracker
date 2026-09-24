@@ -11,7 +11,7 @@ class TestTaskService(unittest.TestCase):
     
     def test_compute_past_due_with_past_date_and_done_status(self):
         """Test that past_due is false when status == Done even if due_date is in the past."""
-        result = compute_past_due(date(2020, 1, 1), "DONE")
+        result = compute_past_due(date(2020, 1, 1), "Done")
         self.assertFalse(result)
     
     def test_compute_past_due_with_no_due_date(self):

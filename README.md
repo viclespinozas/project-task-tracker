@@ -32,6 +32,8 @@ To run migrations:
 docker-compose exec backend alembic upgrade head
 ```
 
+This step is required, not optional — the backend no longer creates tables on startup, so a fresh database has no `projects`/`tasks` tables until this has been run at least once.
+
 ## End-to-End Setup Steps
 
 1. Clone the repository

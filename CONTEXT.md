@@ -160,3 +160,18 @@ docker-compose exec backend pytest
   - Forms map directly to Create/Update schemas from the backend
   - Uses API client for POST/PATCH requests
   - Refreshes the board on success
+- [9/24/2026] Fixed past_due incorrectly true for completed tasks
+  - `services/task_service.compute_past_due` compared `status` against the literal `"DONE"`, but the real value stored/sent everywhere is `"Done"` (`TaskStatus.DONE.value`), so the comparison never matched
+  - Completed tasks with a past due date were being flagged `past_due: true` in the API and on the Kanban board's past-due indicator
+  - Now compares against `TaskStatus.DONE.value` instead of a hardcoded string
+- [9/24/2026] Fixed `alembic upgrade head` failing with `DuplicateTable`
+  - `main.py` called `Base.metadata.create_all(bind=engine)` on every backend startup, which created `projects`/`tasks` directly via SQLAlchemy without ever recording an `alembic_version` row
+  - Running the documented `alembic upgrade head` afterward always failed, since Alembic tried to `CREATE TABLE` on tables that already existed
+  - Removed the `create_all` call so Alembic is the single owner of the schema; reconciled the existing dev database (which had real seed data) with `alembic stamp head`, a non-destructive operation that only records the current revision without touching any rows
+  - Fresh environments now require `alembic upgrade head` to get tables at all — see README's Database Migrations section
+- [9/24/2026] Fixed backend test suite
+  - Bare `pytest` failed to even collect tests (`ModuleNotFoundError: No module named 'app'`) because the backend root wasn't on `sys.path` unless invoked as `python -m pytest`; added `backend/pytest.ini` with `pythonpath = .` to fix this for both invocation styles
+  - `tests/test_tasks_simple.py` passed raw ISO date strings directly into `Task`/`Project` ORM constructors (bypassing the Pydantic schema that normally parses them), which SQLite's date type rejects; changed the test fixtures to real `date(...)` objects
+  - Several tests across `test_compute_past_due.py`, `tests/test_simple_tasks.py`, `tests/test_tasks.py`, and `tests/test_tasks_simple.py` asserted against the same wrong-case `"DONE"` status the `past_due` fix above corrected; updated them to `"Done"`
+  - `test_update_task_changes_updated_at_automatically` was flaky against SQLite, whose `CURRENT_TIMESTAMP` only has second-level resolution — a create+update in the same test can land in the same second and produce an identical `updated_at`; added a 1-second delay between create and update so the assertion is reliable
+  - Full suite (48 tests) now passes via the documented `docker-compose exec backend pytest`

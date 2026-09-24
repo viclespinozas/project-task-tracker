@@ -22,7 +22,7 @@ def test_compute_past_due():
     assert result == False
     
     # Test 3: Past due task with status DONE
-    result = compute_past_due('2020-01-01', 'DONE')
+    result = compute_past_due('2020-01-01', 'Done')
     print(f"Test 3 - Past due task with DONE status: {result} (expected: False)")
     assert result == False
     
