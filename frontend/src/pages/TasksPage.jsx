@@ -83,16 +83,22 @@ const TasksPage = () => {
   // Render card content for each task
   const renderCard = (task) => {
     const isPastDue = task.due_date && new Date(task.due_date) < new Date();
-    
+
     return (
       <div className={`kanban-card-content ${isPastDue ? 'past-due' : ''}`}>
         <h4>{task.name}</h4>
-        {task.assignee && <p>Assignee: {task.assignee}</p>}
-        {task.priority && <p>Priority: {task.priority}</p>}
+        <div className="card-meta">
+          {task.assignee && <span className="chip chip-assignee">{task.assignee}</span>}
+          {task.priority && (
+            <span className={`chip chip-priority chip-priority-${task.priority.toLowerCase()}`}>
+              {task.priority}
+            </span>
+          )}
+        </div>
         {task.due_date && (
-          <p>
+          <p className="due-date">
             Due: {new Date(task.due_date).toLocaleDateString()}
-            {isPastDue && <span className="past-due-flag"> (PAST DUE)</span>}
+            {isPastDue && <span className="past-due-flag">Past due</span>}
           </p>
         )}
       </div>
@@ -150,24 +156,24 @@ const TasksPage = () => {
 
   if (loading) {
     return (
-      <div>
+      <div className="page">
         <h1>Tasks</h1>
-        <p>Loading tasks and projects...</p>
+        <p className="state-message">Loading tasks and projects…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
+      <div className="page">
         <h1>Tasks</h1>
-        <p>Error: {error}</p>
+        <p className="state-message error">{error}</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="page">
       <h1>Tasks</h1>
       
       {/* Project filter dropdown */}
