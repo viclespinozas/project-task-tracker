@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
-const ModalForm = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  title, 
+const ModalForm = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  title,
   type, // 'project' or 'task'
   initialData = null,
-  validationErrors = null
+  validationErrors = null,
+  projects = [] // needed for the task form's project picker
 }) => {
   const [formData, setFormData] = useState(initialData || (type === 'project' ? getDefaultProjectData() : getDefaultTaskData()));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -192,7 +193,23 @@ const ModalForm = ({
                 required
               />
               {validationErrors?.name && <span className="error">{validationErrors.name}</span>}
-              
+
+              <label htmlFor="project_id">Project *</label>
+              <select
+                id="project_id"
+                name="project_id"
+                value={formData.project_id || ''}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>Select a project</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+
               <label htmlFor="status">Status *</label>
               <select
                 id="status"
@@ -207,7 +224,7 @@ const ModalForm = ({
                 <option value="Doing">Doing</option>
                 <option value="Done">Done</option>
               </select>
-              
+
               <label htmlFor="assignee">Assignee</label>
               <input
                 type="text"
@@ -247,14 +264,6 @@ const ModalForm = ({
                 onChange={handleChange}
                 rows="4"
               />
-              
-              {initialData?.project_id && (
-                <input
-                  type="hidden"
-                  name="project_id"
-                  value={formData.project_id}
-                />
-              )}
             </div>
           )}
           
