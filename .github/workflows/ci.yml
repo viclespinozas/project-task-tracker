@@ -37,15 +37,10 @@ jobs:
           cd backend
           python -m pip install -r requirements.txt
 
-      - name: Debug psycopg2 install
-        run: |
-          cd backend
-          python -c "import sys; print('executable:', sys.executable)"
-          python -c "import psycopg2; print('import ok:', psycopg2.__file__)"
-
       - name: Run alembic upgrade
         run: |
           cd backend
+          python -c "import psycopg2; print('pre-check ok:', psycopg2.__file__)"
           export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracker
           python -m alembic upgrade head
         env:
