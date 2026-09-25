@@ -144,8 +144,10 @@ const KanbanBoard = ({
         {columns.map(column => (
           <div key={column.value} className="kanban-column">
             <div className="kanban-column-header">
-              <h3>{column.label}</h3>
-              <span className="kanban-column-count">{columnItems[column.value]?.length || 0}</span>
+              <div className="kanban-column-title-group">
+                <h3>{column.label}</h3>
+                <span className="kanban-column-count">{columnItems[column.value]?.length || 0}</span>
+              </div>
               {onAddItem && (
                 <button 
                   className="add-card-button"
