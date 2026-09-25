@@ -82,7 +82,10 @@ const TasksPage = () => {
 
   // Render card content for each task
   const renderCard = (task) => {
-    const isPastDue = task.due_date && new Date(task.due_date) < new Date();
+    // Use the backend's past_due (it excludes Done tasks) rather than
+    // recomputing from due_date alone, which would flag completed tasks
+    // with a due date in the past as still "past due".
+    const isPastDue = task.past_due;
 
     return (
       <div className={`kanban-card-content ${isPastDue ? 'past-due' : ''}`}>

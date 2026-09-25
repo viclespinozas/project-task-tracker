@@ -1,169 +1,143 @@
 #!/usr/bin/env python3
 """
-Seed script to populate the database with realistic test data.
-This script creates Projects and Tasks covering all status and priority values,
-including at least one genuinely past-due task.
+Seed script to populate the database with a realistic fixture: 2 projects,
+each with 2 tasks in every task status, so the Kanban board is fully
+populated end to end regardless of which project you filter by.
+
+Run from backend/: python app/scripts/seed.py
 """
 
 import os
 import sys
-import datetime
+from datetime import date, timedelta
 
-# Add the current directory to Python path so we can import from it
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-# Direct database connection approach
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from app.db.session import SessionLocal, Base, engine
+from app.models import Project, Task
 
-# Set up database connection using the same URL as in .env
-DATABASE_URL = "sqlite:///../../test.db"
+TODAY = date.today()
 
-engine = create_engine(DATABASE_URL)
-Base = declarative_base()
 
-# Define models directly to match the existing schema
-class Project(Base):
-    __tablename__ = "projects"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    status = Column(String)
+def build_projects():
+    return [
+        Project(
+            name="Website Redesign",
+            assignee="Priya Nair",
+            priority="High",
+            progress=60,
+            start_date=TODAY - timedelta(days=30),
+            end_date=TODAY + timedelta(days=20),
+            status="In Progress",
+        ),
+        Project(
+            name="Mobile App Launch",
+            assignee="Marcus Webb",
+            priority="Medium",
+            progress=0,
+            start_date=TODAY + timedelta(days=7),
+            end_date=TODAY + timedelta(days=90),
+            status="Not Started",
+        ),
+    ]
 
-class Task(Base):
-    __tablename__ = "tasks"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    status = Column(String)
-    priority = Column(String)
-    project_id = Column(Integer, ForeignKey("projects.id"))
-    due_date = Column(Date)
+
+def build_tasks(website_id, mobile_id):
+    return [
+        # Website Redesign
+        Task(name="Audit current site analytics", status="Inbox", priority="Medium",
+             assignee="Priya Nair", project_id=website_id,
+             due_date=TODAY + timedelta(days=6)),
+        Task(name="Collect stakeholder feedback", status="Inbox", priority="Low",
+             assignee="Priya Nair", project_id=website_id,
+             due_date=TODAY + timedelta(days=8)),
+        Task(name="Approve new brand color palette", status="Waiting", priority="Medium",
+             assignee="Sana Malik", project_id=website_id,
+             due_date=TODAY + timedelta(days=4)),
+        Task(name="Legal review of privacy policy copy", status="Waiting", priority="Low",
+             assignee="Diego Fernandez", project_id=website_id,
+             due_date=TODAY + timedelta(days=12)),
+        Task(name="Design homepage wireframes", status="Next", priority="High",
+             assignee="Priya Nair", project_id=website_id,
+             due_date=TODAY + timedelta(days=3)),
+        Task(name="Set up staging environment", status="Next", priority="Medium",
+             assignee="Tom Reilly", project_id=website_id,
+             due_date=TODAY + timedelta(days=9)),
+        Task(name="Build responsive navigation component", status="Doing", priority="High",
+             assignee="Tom Reilly", project_id=website_id,
+             due_date=TODAY + timedelta(days=2)),
+        Task(name="Migrate blog content to new CMS", status="Doing", priority="Medium",
+             assignee="Sana Malik", project_id=website_id,
+             due_date=TODAY - timedelta(days=1)),  # deliberately past due
+        Task(name="Kickoff meeting with stakeholders", status="Done", priority="Low",
+             assignee="Priya Nair", project_id=website_id,
+             due_date=TODAY - timedelta(days=25)),
+        Task(name="Finalize sitemap", status="Done", priority="Medium",
+             assignee="Priya Nair", project_id=website_id,
+             due_date=TODAY - timedelta(days=18)),
+
+        # Mobile App Launch
+        Task(name="Research app store submission guidelines", status="Inbox", priority="Low",
+             assignee="Marcus Webb", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=14)),
+        Task(name="Draft onboarding flow copy", status="Inbox", priority="Medium",
+             assignee="Aisha Khan", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=16)),
+        Task(name="Vendor sign-off for push notification service", status="Waiting", priority="High",
+             assignee="Marcus Webb", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=10)),
+        Task(name="Marketing review of app store listing", status="Waiting", priority="Medium",
+             assignee="Aisha Khan", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=11)),
+        Task(name="Define MVP feature scope", status="Next", priority="High",
+             assignee="Marcus Webb", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=5)),
+        Task(name="Set up CI/CD pipeline for mobile builds", status="Next", priority="Medium",
+             assignee="Tom Reilly", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=13)),
+        Task(name="Implement push notification service", status="Doing", priority="High",
+             assignee="Tom Reilly", project_id=mobile_id,
+             due_date=TODAY + timedelta(days=1)),
+        Task(name="Build user authentication flow", status="Doing", priority="High",
+             assignee="Aisha Khan", project_id=mobile_id,
+             due_date=TODAY - timedelta(days=4)),  # deliberately past due
+        Task(name="Competitive analysis of similar apps", status="Done", priority="Low",
+             assignee="Marcus Webb", project_id=mobile_id,
+             due_date=TODAY - timedelta(days=20)),
+        Task(name="Finalize tech stack decision", status="Done", priority="Medium",
+             assignee="Tom Reilly", project_id=mobile_id,
+             due_date=TODAY - timedelta(days=15)),
+    ]
+
 
 def seed_database():
-    """Seed the database with realistic test data."""
-    
-    # Create all tables
     Base.metadata.create_all(bind=engine)
-    
-    # Create session
-    Session = sessionmaker(bind=engine)
-    db = Session()
-    
+    db = SessionLocal()
+
     try:
-        # Clear existing data (optional, comment out if you want to preserve existing data)
-        # db.query(Task).delete()
-        # db.query(Project).delete()
-        
-        # Create Projects with proper status values
-        projects = [
-            Project(
-                name="Website Redesign",
-                status="Not Started"
-            ),
-            Project(
-                name="Mobile App Development",
-                status="In Progress"
-            ),
-            Project(
-                name="Marketing Campaign",
-                status="Done"
-            ),
-            Project(
-                name="Database Migration",
-                status="Not Started"
-            )
-        ]
-        
-        # Add projects to database
-        for project in projects:
-            db.add(project)
-        
+        db.query(Task).delete()
+        db.query(Project).delete()
         db.commit()
-        
-        # Get project IDs
-        project_ids = [project.id for project in db.query(Project).all()]
-        
-        # Create Tasks with all status and priority values
-        tasks = [
-            # Active tasks with different priorities
-            Task(
-                name="Design homepage layout",
-                status="Inbox",
-                priority="High",
-                project_id=project_ids[0],
-                due_date=datetime.date.today() + datetime.timedelta(days=5)
-            ),
-            Task(
-                name="Implement user authentication",
-                status="Waiting",
-                priority="Medium",
-                project_id=project_ids[1],
-                due_date=datetime.date.today() + datetime.timedelta(days=10)
-            ),
-            Task(
-                name="Write API documentation",
-                status="Done",
-                priority="Low",
-                project_id=project_ids[2],
-                due_date=datetime.date.today() + datetime.timedelta(days=2)
-            ),
-            Task(
-                name="Setup CI/CD pipeline",
-                status="Next",
-                priority="High",
-                project_id=project_ids[3],
-                due_date=datetime.date.today() + datetime.timedelta(days=15)
-            ),
-            
-            # Past-due task (this should be genuinely past-due)
-            Task(
-                name="Fix critical security vulnerability",
-                status="Doing",
-                priority="High",
-                project_id=project_ids[0],
-                due_date=datetime.date.today() - datetime.timedelta(days=3)  # Past due by 3 days
-            ),
-            
-            # Additional tasks to cover all combinations
-            Task(
-                name="Prepare presentation slides",
-                status="Inbox",
-                priority="Medium",
-                project_id=project_ids[1],
-                due_date=datetime.date.today() + datetime.timedelta(days=7)
-            ),
-            Task(
-                name="Update dependencies",
-                status="Waiting",
-                priority="Low",
-                project_id=project_ids[2],
-                due_date=datetime.date.today() + datetime.timedelta(days=1)
-            ),
-            Task(
-                name="Performance optimization",
-                status="Done",
-                priority="High",
-                project_id=project_ids[3],
-                due_date=datetime.date.today() - datetime.timedelta(days=2)  # Past due by 2 days
-            )
-        ]
-        
-        # Add tasks to database
-        for task in tasks:
+
+        website, mobile = build_projects()
+        db.add(website)
+        db.add(mobile)
+        db.commit()
+
+        for task in build_tasks(website.id, mobile.id):
             db.add(task)
-        
         db.commit()
-        print("Database seeded successfully with realistic test data!")
-        
+
+        print(f"Seeded {2} projects and {len(build_tasks(website.id, mobile.id))} tasks.")
+
     except Exception as e:
         db.rollback()
         print(f"Error seeding database: {e}")
         raise
-        
+
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_database()
