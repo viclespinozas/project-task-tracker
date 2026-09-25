@@ -19,9 +19,9 @@ Alembic is the sole owner of the schema — `main.py` no longer calls `Base.meta
 
 ### Seed sample data
 ```bash
-cd backend && python app/scripts/seed.py
+docker-compose exec backend python app/scripts/seed.py
 ```
-Creates 4 projects (all statuses), 8 tasks (all statuses/priorities), including at least one genuinely past-due task. Dev/demo only.
+**Deletes all existing projects/tasks first**, then creates a fixed fixture: 2 realistic projects (Website Redesign, Mobile App Launch), each with 2 tasks in every one of the 5 task statuses (20 tasks total), including 2 deliberately past-due tasks. It imports the real `app.db.session`/`app.models` and runs against whatever `DATABASE_URL` the app is actually using — earlier versions of this script hardcoded their own disconnected SQLite path and never touched the real dev database, so re-running it appeared to do nothing.
 
 ### Tests
 ```bash
@@ -33,6 +33,9 @@ docker-compose exec backend pytest tests/test_tasks.py::test_name   # single tes
 `backend/tests/conftest.py`'s `test_engine` fixture hard-fails unless `settings.database_url` contains the substring `"test"` — this is what keeps tests from accidentally running against the dev database. The repo's `.env` files satisfy this by pointing `DATABASE_URL` at `sqlite:///./test.db` even outside a test context; don't repoint `DATABASE_URL` to a non-test database without accounting for this guard.
 
 There is no single canonical test setup: `test_tasks.py` and `test_simple_tasks.py` use the shared `conftest.py` fixtures (`client`, `db_session`, in-memory SQLite via `StaticPool`), while `test_projects.py` and `test_tasks_simple.py` define their own local `test_db`/`db_session` fixtures with a separate in-memory SQLite engine and don't use the shared `client` fixture. When adding tests, check which pattern the target file already uses rather than assuming `conftest.py` fixtures are always in scope.
+
+### CI (`.github/workflows/ci.yml`)
+Every entry in `backend/requirements.txt` is pinned to an exact version — **keep it that way**. It used to be fully unpinned, and CI (no dependency cache, resolves fresh from PyPI every run) silently picked up a newer `sqlalchemy` than the one actually running in the built Docker image, which broke `psycopg2` import specifically inside Alembic's dynamic `env.py` loading. If you bump a dependency, bump it deliberately in both `requirements.txt` and rebuild the Docker image, not by leaving it unpinned. CI's Python version (`setup-python`) is also deliberately kept at 3.12 to match `backend/Dockerfile` — don't let those drift apart either.
 
 ## Architecture
 
@@ -46,10 +49,14 @@ Layout: `models/` (SQLAlchemy ORM) → `schemas/` (Pydantic request/response) �
 - `TaskUpdate`/`ProjectUpdate` (`schemas/`) reuse the same `Base` schema as `Create`, so PATCH endpoints rely on `model_dump(exclude_unset=True)` to apply partial updates — passing an explicit `null` for a field will unset it because Pydantic can't distinguish "not sent" only when the field truly wasn't included in the request body.
 
 ### Frontend (`frontend/src/`)
-- `components/KanbanBoard.jsx` is a generic, status-agnostic drag-and-drop board (via `@dnd-kit`), driven entirely by props: `items`, `columns` (ordered `{value, label}` list), `getItemStatus(item)`, `onStatusChange(itemId, newStatus)`, and a `renderCard(item)` render prop. It has no knowledge of Projects vs. Tasks.
-- `pages/ProjectsPage.jsx` and `pages/TasksPage.jsx` each wire `KanbanBoard` to their respective API resource: fetch on mount, group into columns by status, apply optimistic local state updates on drag with revert-on-failure, and PATCH the new status to the backend. `TasksPage` additionally supports filtering by project (populated from `GET /projects`) and renders a past-due visual flag.
-- `components/ModalForm.jsx` is the shared controlled create/edit form for both Projects and Tasks, mapping directly to the backend's Create/Update schemas and surfacing 422 validation errors from the API.
-- `api/client.js` is a minimal fetch wrapper (`get`/`post`/`patch`/`delete`) reading `VITE_API_URL` (defaults to `http://localhost:8000/api`).
+- `components/KanbanBoard.jsx` is a generic, status-agnostic drag-and-drop board (via `@dnd-kit`), driven entirely by props: `items`, `columns` (ordered `{value, label}` list), `getItemStatus(item)`, `onStatusChange(itemId, newStatus)`, and a `renderCard(item)` render prop. It has no knowledge of Projects vs. Tasks. Its `columnItems` state is resynced from the `items` prop via a `useEffect` keyed on `[items]` — it used to only be computed once, inside `useState`'s initializer, so creating/editing/refetching data never showed up on the board without a full page reload.
+- `pages/ProjectsPage.jsx` and `pages/TasksPage.jsx` each wire `KanbanBoard` to their respective API resource: fetch on mount, group into columns by status, apply optimistic local state updates on drag with revert-on-failure, and PATCH the new status to the backend. `TasksPage` additionally supports filtering by project (populated from `GET /projects`), passes that same `projects` list into `ModalForm` for the task form's project picker, and renders a past-due visual flag from the backend's `task.past_due` — **not** recomputed from `due_date` client-side (recomputing it from the date alone, ignoring status, was a real bug: it flagged completed/`Done` tasks with a past due date as still past-due).
+- `components/ModalForm.jsx` is the shared controlled create/edit form for both Projects and Tasks, mapping directly to the backend's Create/Update schemas and surfacing 422 validation errors from the API. The task form has a required "Project" `<select>` (populated from the `projects` prop) — creating a task with no way to pick a project used to 404 against the backend, since `project_id` was never sent. `formData` is resynced from the `initialData`/`isOpen`/`type` props via a `useEffect` — same stale-props-in-`useState` pattern as `KanbanBoard` above; without it, Edit always showed blank/leftover fields instead of the item actually being edited, because the component stays mounted (just renders `null`) while closed.
+- `api/client.js` is a minimal fetch wrapper (`get`/`post`/`patch`/`delete`) reading `VITE_API_URL` (defaults to `http://localhost:8000/api`). It throws on non-2xx responses with `error.response = { status, data }` attached (fetch itself only rejects on network failure) — callers rely on this to distinguish real failures from success; don't revert to a bare `.then(r => r.json())` or every failed request will silently look like it succeeded.
+- Theming: CSS custom properties defined under `:root` (light) and overridden under `:root[data-theme='dark']` in `index.css`. `components/ThemeToggle.jsx` toggles `document.documentElement`'s `data-theme` attribute and persists the choice to `localStorage`; an inline script in `index.html`'s `<head>` sets `data-theme` before first paint (reading `localStorage`, falling back to `prefers-color-scheme`) to avoid a flash of the wrong theme.
 
 ### Docker Compose
 `docker-compose.yml` defines `db` (Postgres 16, with a healthcheck gating `backend` startup), `backend`, and `frontend`, all on an `app-network` bridge. `backend` mounts the local `./backend` directory as a volume, so code edits are picked up without rebuilding the image (uvicorn still needs a restart unless `--reload` is added). `POSTGRES_MULTIPLE_DATABASES` is set on `db` but `init-scripts/` is currently empty, so it has no effect.
+
+## History
+`CONTEXT.md`'s "Build Log" section has a dated, one-entry-per-change log of what was built or fixed and why, going back to the component's original implementation. Check it for the reasoning behind a specific past change; this file (`CLAUDE.md`) only holds the current-state facts that change day to day.

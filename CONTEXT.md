@@ -112,19 +112,19 @@ The component groups items into columns by status and supports drag-and-drop bet
 
 ## Seeding Data
 
-To seed the database with sample projects and tasks for local development or demo purposes:
+To seed the database with a realistic fixture for local development or demo purposes:
 
 ```bash
-cd backend && python app/scripts/seed.py
+docker-compose exec backend python app/scripts/seed.py
 ```
 
-The seed script creates:
-- 4 Projects with different statuses (Not Started, In Progress, Done)
-- 8 Tasks covering all status values (Inbox, Waiting, Next, Doing, Done)
-- All priority levels (High, Medium, Low) 
-- At least one genuinely past-due task
+The seed script **clears all existing projects and tasks first**, then creates:
+- 2 realistic projects (Website Redesign — In Progress, 60%; Mobile App Launch — Not Started, 0%)
+- 2 tasks in every one of the 5 task statuses, per project (20 tasks total)
+- Real assignee names and a mix of all 3 priority levels
+- 2 deliberately past-due tasks (in non-Done statuses, to exercise the past-due indicator correctly)
 
-This script is designed for local development and demo purposes only.
+This script is designed for local development and demo purposes only, and is destructive to whatever data is currently in the database.
 
 
 ## Testing
@@ -175,3 +175,16 @@ docker-compose exec backend pytest
   - Several tests across `test_compute_past_due.py`, `tests/test_simple_tasks.py`, `tests/test_tasks.py`, and `tests/test_tasks_simple.py` asserted against the same wrong-case `"DONE"` status the `past_due` fix above corrected; updated them to `"Done"`
   - `test_update_task_changes_updated_at_automatically` was flaky against SQLite, whose `CURRENT_TIMESTAMP` only has second-level resolution — a create+update in the same test can land in the same second and produce an identical `updated_at`; added a 1-second delay between create and update so the assertion is reliable
   - Full suite (48 tests) now passes via the documented `docker-compose exec backend pytest`
+- [9/24/2026–9/25/2026] Added a pastel light/dark theme, then fixed two frontend bugs it exposed
+  - Added a design-token stylesheet (`index.css`) with a light/dark palette, a `ThemeToggle.jsx` component (persists to `localStorage`, no flash-of-wrong-theme on load), and restyled the board/cards/modal
+  - Fixed `api/client.js` to throw on non-2xx HTTP responses instead of silently resolving them as success — `fetch()` only rejects on network failure, so every failed request (a 422, a 404) had been treated as a success everywhere in the app
+  - Fixed task creation always returning 404: the task form never had a way to pick a project, so `project_id` was never sent; added a required "Project" select to `ModalForm.jsx`'s task form, backed by the `projects` list already fetched in `TasksPage.jsx`
+  - Fixed the Edit modal showing blank/stale data: `ModalForm`'s `formData` was seeded from `initialData` only once, inside `useState`'s initializer, since the component stays mounted (rendering `null`) while closed; added a `useEffect` to resync it whenever the modal opens — the same fix already applied to `KanbanBoard`'s `columnItems` for the equivalent "board doesn't update after create/edit" bug
+  - Merged all three (styling, task-creation fix, edit-modal fix) into `main`
+- [9/25/2026] Fixed a CI-only failure: `ModuleNotFoundError: No module named 'psycopg2'` inside Alembic, despite `pip` reporting a successful install moments earlier in the same job
+  - Root cause: `backend/requirements.txt` had no version pins at all; CI has no dependency cache and resolves fresh from PyPI every run, so it picked up `sqlalchemy==2.1.1` while the actual running Docker image (built days earlier) has `sqlalchemy==2.0.54` — a real version drift across the exact dialect code that imports `psycopg2`
+  - Pinned every dependency in `requirements.txt` to the versions verified working in the Docker container (via `pip freeze`), and bumped CI's Python version from 3.11 to 3.12 to match `backend/Dockerfile`
+- [9/25/2026] Replaced seed data with a real 2-project fixture; fixed a past-due display bug it exposed
+  - The dev database had accumulated ~170 junk rows from repeated manual testing across sessions ("Test Project", blank names, invalid statuses like `"active"`); `seed.py` itself hardcoded its own disconnected SQLite path and duplicated bare model columns instead of using the real `app.db.session`/`app.models`, so running it never touched the actual Postgres database or cleared old rows
+  - Rewrote `seed.py` to use the real app models/session, clear existing data first, and create 2 realistic projects with 2 tasks in every one of the 5 task statuses each (20 tasks total)
+  - Loading this fixture exposed a real bug: `TasksPage.jsx`'s `renderCard` recomputed "past due" client-side from `due_date` alone, ignoring `status`, so completed (`Done`) tasks with a due date in the past showed a red "PAST DUE" badge despite the backend correctly reporting `past_due: false` for them; fixed by using the backend's `task.past_due` instead of recomputing it
