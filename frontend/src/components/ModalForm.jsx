@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ModalForm = ({
   isOpen,
@@ -12,6 +12,17 @@ const ModalForm = ({
 }) => {
   const [formData, setFormData] = useState(initialData || (type === 'project' ? getDefaultProjectData() : getDefaultTaskData()));
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Resync when a new item is opened — ModalForm stays mounted even while
+  // closed, so without this, formData only ever reflected whatever
+  // initialData existed on this component's very first render, and every
+  // later Edit (or Add) showed blank/default fields instead of the real item.
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(initialData || (type === 'project' ? getDefaultProjectData() : getDefaultTaskData()));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialData, type]);
 
   // Default project data
   function getDefaultProjectData() {
