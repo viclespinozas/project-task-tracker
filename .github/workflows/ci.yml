@@ -35,13 +35,13 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
 
       - name: Run alembic upgrade
         run: |
           cd backend
           export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracker
-          alembic upgrade head
+          python -m alembic upgrade head
         env:
           PIP_CACHE_DIR: /tmp/pip-cache
 
@@ -49,6 +49,6 @@ jobs:
         run: |
           cd backend
           export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tracker
-          pytest
+          python -m pytest
         env:
           PIP_CACHE_DIR: /tmp/pip-cache
