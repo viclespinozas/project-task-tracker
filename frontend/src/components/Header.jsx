@@ -1,13 +1,18 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+import ThemeToggle from './ThemeToggle'
 
 const Header = () => {
   return (
-    <header>
-      <nav>
-        <Link to="/projects">Projects</Link>
-        <Link to="/tasks">Tasks</Link>
-      </nav>
+    <header className="app-header">
+      <div className="app-header-inner">
+        <span className="app-brand">🌿 Task Tracker</span>
+        <nav>
+          <NavLink to="/projects" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>Projects</NavLink>
+          <NavLink to="/tasks" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>Tasks</NavLink>
+        </nav>
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

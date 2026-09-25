@@ -75,17 +75,23 @@ const ProjectsPage = () => {
     return (
       <div className="kanban-card-content">
         <h4>{project.name}</h4>
-        {project.assignee && <p>Assignee: {project.assignee}</p>}
-        {project.priority && <p>Priority: {project.priority}</p>}
+        <div className="card-meta">
+          {project.assignee && <span className="chip chip-assignee">{project.assignee}</span>}
+          {project.priority && (
+            <span className={`chip chip-priority chip-priority-${project.priority.toLowerCase()}`}>
+              {project.priority}
+            </span>
+          )}
+        </div>
         {project.progress !== null && project.progress !== undefined && (
-          <div>
-            <p>Progress: {project.progress}%</p>
+          <div className="progress-wrap">
             <div className="progress-bar">
-              <div 
-                className="progress-fill" 
+              <div
+                className="progress-fill"
                 style={{ width: `${project.progress}%` }}
               ></div>
             </div>
+            <span className="progress-label">{project.progress}%</span>
           </div>
         )}
       </div>
@@ -138,24 +144,24 @@ const ProjectsPage = () => {
 
   if (loading) {
     return (
-      <div>
+      <div className="page">
         <h1>Projects</h1>
-        <p>Loading projects...</p>
+        <p className="state-message">Loading projects…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
+      <div className="page">
         <h1>Projects</h1>
-        <p>Error: {error}</p>
+        <p className="state-message error">{error}</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="page">
       <h1>Projects</h1>
       <KanbanBoard
         items={projects}

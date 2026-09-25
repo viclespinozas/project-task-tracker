@@ -87,167 +87,197 @@ const ModalForm = ({
         <form onSubmit={handleSubmit}>
           {type === 'project' ? (
             <div className="form-group">
-              <label htmlFor="name">Name *</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-              {validationErrors?.name && <span className="error">{validationErrors.name}</span>}
-              
-              <label htmlFor="assignee">Assignee</label>
-              <input
-                type="text"
-                id="assignee"
-                name="assignee"
-                value={formData.assignee}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="priority">Priority</label>
-              <select
-                id="priority"
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-              >
-                <option value="">Select Priority</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-              
-              <label htmlFor="progress">Progress (%)</label>
-              <input
-                type="number"
-                id="progress"
-                name="progress"
-                min="0"
-                max="100"
-                value={formData.progress || ''}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="start_date">Start Date</label>
-              <input
-                type="date"
-                id="start_date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="end_date">End Date</label>
-              <input
-                type="date"
-                id="end_date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="start_value">Start Value</label>
-              <input
-                type="number"
-                id="start_value"
-                name="start_value"
-                value={formData.start_value || ''}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="end_value">End Value</label>
-              <input
-                type="number"
-                id="end_value"
-                name="end_value"
-                value={formData.end_value || ''}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="status">Status *</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-              >
-                <option value="Not Started">Not Started</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Done">Done</option>
-              </select>
+              <div className="field">
+                <label htmlFor="name">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+                {validationErrors?.name && <span className="error">{validationErrors.name}</span>}
+              </div>
+
+              <div className="field">
+                <label htmlFor="assignee">Assignee</label>
+                <input
+                  type="text"
+                  id="assignee"
+                  name="assignee"
+                  value={formData.assignee}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="priority">Priority</label>
+                <select
+                  id="priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Priority</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label htmlFor="progress">Progress (%)</label>
+                <input
+                  type="number"
+                  id="progress"
+                  name="progress"
+                  min="0"
+                  max="100"
+                  value={formData.progress || ''}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="start_date">Start Date</label>
+                <input
+                  type="date"
+                  id="start_date"
+                  name="start_date"
+                  value={formData.start_date}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="end_date">End Date</label>
+                <input
+                  type="date"
+                  id="end_date"
+                  name="end_date"
+                  value={formData.end_date}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="start_value">Start Value</label>
+                <input
+                  type="number"
+                  id="start_value"
+                  name="start_value"
+                  value={formData.start_value || ''}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="end_value">End Value</label>
+                <input
+                  type="number"
+                  id="end_value"
+                  name="end_value"
+                  value={formData.end_value || ''}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="status">Status *</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="Not Started">Not Started</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Done">Done</option>
+                </select>
+              </div>
             </div>
           ) : (
             <div className="form-group">
-              <label htmlFor="name">Name *</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-              {validationErrors?.name && <span className="error">{validationErrors.name}</span>}
-              
-              <label htmlFor="status">Status *</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-              >
-                <option value="Inbox">Inbox</option>
-                <option value="Waiting">Waiting</option>
-                <option value="Next">Next</option>
-                <option value="Doing">Doing</option>
-                <option value="Done">Done</option>
-              </select>
-              
-              <label htmlFor="assignee">Assignee</label>
-              <input
-                type="text"
-                id="assignee"
-                name="assignee"
-                value={formData.assignee}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="due_date">Due Date</label>
-              <input
-                type="date"
-                id="due_date"
-                name="due_date"
-                value={formData.due_date}
-                onChange={handleChange}
-              />
-              
-              <label htmlFor="priority">Priority *</label>
-              <select
-                id="priority"
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                required
-              >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-              
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
-              />
-              
+              <div className="field">
+                <label htmlFor="name">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+                {validationErrors?.name && <span className="error">{validationErrors.name}</span>}
+              </div>
+
+              <div className="field">
+                <label htmlFor="status">Status *</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="Inbox">Inbox</option>
+                  <option value="Waiting">Waiting</option>
+                  <option value="Next">Next</option>
+                  <option value="Doing">Doing</option>
+                  <option value="Done">Done</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label htmlFor="assignee">Assignee</label>
+                <input
+                  type="text"
+                  id="assignee"
+                  name="assignee"
+                  value={formData.assignee}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="due_date">Due Date</label>
+                <input
+                  type="date"
+                  id="due_date"
+                  name="due_date"
+                  value={formData.due_date}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="field">
+                <label htmlFor="priority">Priority *</label>
+                <select
+                  id="priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+
+              <div className="field full-width">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                />
+              </div>
+
               {initialData?.project_id && (
                 <input
                   type="hidden"
@@ -257,7 +287,7 @@ const ModalForm = ({
               )}
             </div>
           )}
-          
+
           <div className="modal-footer">
             <button 
               type="button" 
