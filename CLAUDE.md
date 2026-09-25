@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Keep this file current.** After completing a task that changes a command, an architectural fact documented below, or adds a non-obvious gotcha, update the relevant section here in the same session — don't let it drift and require a large catch-up pass later. Add a dated entry to `CONTEXT.md`'s Build Log for the "why" behind the change; keep only current-state facts here.
+
 ## Project
 
 A self-hosted project/task tracker (Notion-lite). FastAPI + SQLAlchemy backend, React + Vite frontend, PostgreSQL via Docker Compose. Two entities only: Projects and Tasks (one-to-many, `Task.project_id`).
