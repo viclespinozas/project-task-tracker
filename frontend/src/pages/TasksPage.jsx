@@ -108,7 +108,7 @@ const TasksPage = () => {
   // Handle adding a new task
   const handleAddTask = (status) => {
     setModalTitle('Create Task');
-    setInitialModalData({ status });
+    setInitialModalData({ status, project_id: selectedProjectId || '' });
     setIsModalOpen(true);
     setValidationErrors(null);
   };
@@ -211,6 +211,7 @@ const TasksPage = () => {
         type="task"
         initialData={initialModalData}
         validationErrors={validationErrors}
+        projects={projects}
       />
     </div>
   );

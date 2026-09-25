@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 
-const ModalForm = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  title, 
+const ModalForm = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  title,
   type, // 'project' or 'task'
   initialData = null,
-  validationErrors = null
+  validationErrors = null,
+  projects = [] // needed for the task form's project picker
 }) => {
   const [formData, setFormData] = useState(initialData || (type === 'project' ? getDefaultProjectData() : getDefaultTaskData()));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -214,6 +215,24 @@ const ModalForm = ({
               </div>
 
               <div className="field">
+                <label htmlFor="project_id">Project *</label>
+                <select
+                  id="project_id"
+                  name="project_id"
+                  value={formData.project_id || ''}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>Select a project</option>
+                  {projects.map(project => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
                 <label htmlFor="status">Status *</label>
                 <select
                   id="status"
@@ -277,14 +296,6 @@ const ModalForm = ({
                   rows="4"
                 />
               </div>
-
-              {initialData?.project_id && (
-                <input
-                  type="hidden"
-                  name="project_id"
-                  value={formData.project_id}
-                />
-              )}
             </div>
           )}
 
